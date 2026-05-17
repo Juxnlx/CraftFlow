@@ -19,13 +19,16 @@ const URL_SUBIDA = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/ima
 /**
  * Implementación del repositorio de almacenamiento usando Cloudinary.
  *
- * Esta clase es la única que conoce el proveedor concreto. El resto de la
- * aplicación depende únicamente de IStorageRepository (principio de inversión
- * de dependencias). Si en el futuro se migra a otro proveedor, basta con
- * crear una nueva implementación sin tocar dominio ni presentación.
+ * Es la única clase que conoce el proveedor concreto: el resto de la
+ * aplicación depende únicamente de IStorageRepository, siguiendo el
+ * principio de inversión de dependencias.
  */
 @injectable()
 export class StorageRepositoryCloudinary implements IStorageRepository {
+  /**
+   * Sube una imagen local al Cloudinary configurado y devuelve la URL
+   * pública junto con el publicId del recurso.
+   */
   async subirImagen(
     uriLocal: string,
     carpeta: CarpetaStorage,

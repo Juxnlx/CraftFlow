@@ -1,10 +1,14 @@
 import { injectable, inject } from "inversify";
-import "reflect-metadata";
 import { TYPES } from "../../../core/types";
 import { IGetProyectoEnProgresoUseCase } from "../../interfaces/usecases/IProyectoEnProgresoUseCases";
 import { IProyectoEnProgresoRepository } from "../../interfaces/repositories/IProyectoEnProgresoRepository";
 import { ProyectoEnProgreso } from "../../entities/ProyectoEnProgreso";
 
+/**
+ * Caso de uso para recuperar el seguimiento activo de un usuario sobre
+ * un proyecto. Sirve para mostrar "Continuar (X%)" en el detalle del
+ * proyecto cuando el usuario ya lo había empezado.
+ */
 @injectable()
 export class GetProyectoEnProgresoUseCase
   implements IGetProyectoEnProgresoUseCase {
@@ -17,6 +21,10 @@ export class GetProyectoEnProgresoUseCase
     this._repo = repo;
   }
 
+  /**
+   * Devuelve el seguimiento activo o null si el usuario no había
+   * empezado todavía ese proyecto.
+   */
   async execute(
     idUsuario: string,
     idProyecto: string

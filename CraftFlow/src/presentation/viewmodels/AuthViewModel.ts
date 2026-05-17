@@ -1,10 +1,12 @@
 import { makeAutoObservable, runInAction } from "mobx";
 import { container } from "../../core/container";
 import { TYPES } from "../../core/types";
-import { ILoginUseCase } from "../../domain/interfaces/usecases/IAuthUseCases";
-import { IRegisterUseCase } from "../../domain/interfaces/usecases/IAuthUseCases";
-import { ILogoutUseCase } from "../../domain/interfaces/usecases/IAuthUseCases";
-import { IResetPasswordUseCase } from "../../domain/interfaces/usecases/IAuthUseCases";
+import {
+  ILoginUseCase,
+  IRegisterUseCase,
+  ILogoutUseCase,
+  IResetPasswordUseCase,
+} from "../../domain/interfaces/usecases/IAuthUseCases";
 import { Usuario } from "../../domain/entities/Usuario";
 
 /**
@@ -13,16 +15,28 @@ import { Usuario } from "../../domain/entities/Usuario";
  * Los errores de Firebase se traducen a mensajes en español.
  */
 export class AuthViewModel {
+  /** Usuario autenticado actualmente, o null si no hay sesión iniciada */
   usuario: Usuario | null = null;
+  /** Indica si hay una operación de auth en curso (login, registro...) */
   isLoading: boolean = false;
+  /** Mensaje de error a mostrar en la UI, o null si no hay */
   error: string | null = null;
+  /** True cuando ya se ha enviado el correo de recuperación de contraseña */
   resetPasswordSent: boolean = false;
 
+  /** Caso de uso para iniciar sesión */
   private _loginUseCase: ILoginUseCase;
+  /** Caso de uso para registrar un nuevo usuario */
   private _registerUseCase: IRegisterUseCase;
+  /** Caso de uso para cerrar la sesión */
   private _logoutUseCase: ILogoutUseCase;
+  /** Caso de uso para enviar el correo de recuperación */
   private _resetPasswordUseCase: IResetPasswordUseCase;
 
+  /**
+   * Activa la reactividad de MobX y resuelve los casos de uso desde
+   * el contenedor de inyección de dependencias.
+   */
   constructor() {
     makeAutoObservable(this);
     this._loginUseCase = container.get<ILoginUseCase>(TYPES.ILoginUseCase);

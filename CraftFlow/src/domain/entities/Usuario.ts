@@ -1,65 +1,35 @@
 /**
- * Representa a un usuario registrado en la aplicación CraftFlow.
+ * Representa a un usuario registrado en CraftFlow.
  *
- * El identificador (_id) corresponde al ID que genera Firebase Authentication
- * automáticamente al registrarse, por eso es de tipo string y no number.
+ * El identificador (_id) coincide con el UID que genera Firebase
+ * Authentication, por eso es de tipo string en vez de un autoincremental.
  *
- * El array de intereses se rellena durante el paso 2 del registro,
- * donde el usuario selecciona qué tipo de manualidades le gustan
- * (crochet, pintura, cerámica, etc.). Se usa para personalizar
- * la experiencia en el feed.
- *
- * @example
- * const usuario = new Usuario(
- *   "abc123Firebase",
- *   "juan@email.com",
- *   "Juan Luis",
- *   null,
- *   new Date(),
- *   ["crochet", "ceramica"],
- *   true
- * );
+ * El array de intereses se rellena durante el registro y se utiliza
+ * para personalizar las recomendaciones del feed.
  */
 export class Usuario {
 
-  /** Identificador único del usuario (ID de Firebase Auth) */
+  /** Identificador único (UID de Firebase Auth) */
   private _id: string;
 
   /** Correo electrónico con el que se registró */
   private _email: string;
 
-  /** Nombre visible del usuario en la aplicación */
+  /** Nombre visible en la aplicación */
   private _nombre: string;
 
-  /** URL de la foto de perfil almacenada en Firebase Storage (null si no tiene) */
+  /** URL de la foto de perfil, o null si no tiene */
   private _fotoPerfil: string | null;
 
-  /** Fecha en la que el usuario se registró en CraftFlow */
+  /** Fecha de alta del usuario */
   private _fechaRegistro: Date;
 
-  /**
-   * Lista de intereses seleccionados durante el registro.
-   * Valores posibles: "crochet", "pintura", "ceramica", "costura", "papel", "otras"
-   */
+  /** Categorías que le interesan al usuario (crochet, pintura, etc.) */
   private _intereses: string[];
 
-  /**
-   * Indica si la cuenta está activa.
-   * Permite desactivar cuentas sin eliminar los datos del usuario.
-   */
+  /** Permite desactivar la cuenta sin borrar los datos */
   private _activo: boolean;
 
-  /**
-   * Crea una nueva instancia de Usuario.
-   *
-   * @param id - ID generado por Firebase Authentication
-   * @param email - Correo electrónico del usuario
-   * @param nombre - Nombre visible en la aplicación
-   * @param fotoPerfil - URL de la foto de perfil en Firebase Storage (opcional)
-   * @param fechaRegistro - Fecha de registro (por defecto: fecha actual)
-   * @param intereses - Array de intereses seleccionados en el registro (por defecto: vacío)
-   * @param activo - Estado de la cuenta (por defecto: true)
-   */
   constructor(
     id: string,
     email: string,
@@ -78,66 +48,29 @@ export class Usuario {
     this._activo = activo;
   }
 
-  //  GETTERS
-  //  Acceso de lectura a todos los atributos
+  // Getters
+  /** Devuelve el UID del usuario */
+  get id(): string { return this._id; }
+  /** Devuelve el correo electrónico */
+  get email(): string { return this._email; }
+  /** Devuelve el nombre visible */
+  get nombre(): string { return this._nombre; }
+  /** Devuelve la URL de la foto de perfil o null */
+  get fotoPerfil(): string | null { return this._fotoPerfil; }
+  /** Devuelve la fecha de alta */
+  get fechaRegistro(): Date { return this._fechaRegistro; }
+  /** Devuelve la lista de intereses */
+  get intereses(): string[] { return this._intereses; }
+  /** Indica si la cuenta está activa */
+  get activo(): boolean { return this._activo; }
 
-  /** @returns El ID de Firebase Authentication del usuario */
-  get id(): string {
-    return this._id;
-  }
-
-  /** @returns El correo electrónico del usuario */
-  get email(): string {
-    return this._email;
-  }
-
-  /** @returns El nombre visible del usuario */
-  get nombre(): string {
-    return this._nombre;
-  }
-
-  /** @returns La URL de la foto de perfil, o null si no tiene */
-  get fotoPerfil(): string | null {
-    return this._fotoPerfil;
-  }
-
-  /** @returns La fecha en que se registró el usuario */
-  get fechaRegistro(): Date {
-    return this._fechaRegistro;
-  }
-
-  /** @returns Array con los intereses del usuario */
-  get intereses(): string[] {
-    return this._intereses;
-  }
-
-  /** @returns true si la cuenta está activa */
-  get activo(): boolean {
-    return this._activo;
-  }
-
-  //  SETTERS
-  //  Solo para los campos que el usuario puede modificar.
-  //  El id, email y fechaRegistro no tienen setter porque
-  //  son inmutables una vez creado el usuario.
-
-  /** @param value - Nuevo nombre visible del usuario */
-  set nombre(value: string) {
-    this._nombre = value;
-  }
-
-  /** @param value - Nueva URL de foto de perfil, o null para eliminarla */
-  set fotoPerfil(value: string | null) {
-    this._fotoPerfil = value;
-  }
-
-  /** @param value - Nueva lista de intereses del usuario */
-  set intereses(value: string[]) {
-    this._intereses = value;
-  }
-
-  /** @param value - true para activar la cuenta, false para desactivarla */
-  set activo(value: boolean) {
-    this._activo = value;
-  }
+  // Setters: id, email y fechaRegistro son inmutables tras el registro
+  /** Cambia el nombre visible */
+  set nombre(value: string) { this._nombre = value; }
+  /** Cambia la URL de la foto de perfil */
+  set fotoPerfil(value: string | null) { this._fotoPerfil = value; }
+  /** Sustituye la lista de intereses */
+  set intereses(value: string[]) { this._intereses = value; }
+  /** Activa o desactiva la cuenta */
+  set activo(value: boolean) { this._activo = value; }
 }

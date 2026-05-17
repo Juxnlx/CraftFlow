@@ -1,5 +1,4 @@
 import { injectable } from "inversify";
-import "reflect-metadata";
 import {
   collection,
   doc,
@@ -14,26 +13,15 @@ import { IFavoritoRepository } from "../../domain/interfaces/repositories/IFavor
 import { Favorito } from "../../domain/entities/Favorito";
 
 /**
- * Implementación del repositorio de favoritos usando Firebase Firestore.
+ * Implementación del repositorio de favoritos con Firebase Firestore.
  *
- * Trabaja con la colección "favoritos" donde cada documento representa
- * la relación entre un usuario y un proyecto guardado.
- *
- * El método toggleFavorito permite alternar el estado con un solo botón
- * en la UI: si el proyecto ya está guardado lo elimina, si no lo crea.
- *
- * @example
- * const repo = container.get<IFavoritoRepository>(TYPES.IFavoritoRepository);
- * const esFav = await repo.toggleFavorito("user123", "proy456"); // true o false
+ * Trabaja con la colección "favoritos", donde cada documento representa
+ * la relación entre un usuario y un proyecto guardado. El método
+ * `toggleFavorito` permite alternar el estado con un único botón en la UI.
  */
 @injectable()
 export class FavoritoRepositoryFirebase implements IFavoritoRepository {
-  /**
-   * Obtiene todos los favoritos guardados por un usuario.
-   *
-   * @param idUsuario - ID del usuario
-   * @returns Promesa que resuelve a un array de favoritos del usuario
-   */
+  /** Devuelve los favoritos guardados por un usuario. */
   async getFavoritosPorUsuario(idUsuario: string): Promise<Favorito[]> {
     const q = query(
       collection(db, "favoritos"),
@@ -52,18 +40,13 @@ export class FavoritoRepositoryFirebase implements IFavoritoRepository {
     });
   }
 
-  /**
-   * Comprueba si un proyecto está marcado como favorito por un usuario.
-   *
-   * @param idUsuario - ID del usuario
-   * @param idProyecto - ID del proyecto
-   * @returns Promesa que resuelve a true si es favorito, false si no
-   */
+  /** Indica si un proyecto está guardado como favorito por el usuario. */
   async esFavorito(
     idUsuario: string,
     idProyecto: string
   ): Promise<boolean> {
-    // Query simple por idUsuario y filtrado en cliente para evitar indice compuesto
+    // Query simple por idUsuario y filtrado en cliente para no
+    // requerir un índice compuesto en Firestore.
     const q = query(
       collection(db, "favoritos"),
       where("idUsuario", "==", idUsuario)
@@ -74,19 +57,15 @@ export class FavoritoRepositoryFirebase implements IFavoritoRepository {
   }
 
   /**
-   * Alterna el estado de favorito de un proyecto para un usuario.
-   * Si ya es favorito lo elimina; si no lo es, lo crea.
-   * Esto permite usar un solo botón "Guardar/Guardado" en la UI.
-   *
-   * @param idUsuario - ID del usuario
-   * @param idProyecto - ID del proyecto
-   * @returns Promesa que resuelve al nuevo estado (true si ahora es favorito, false si dejó de serlo)
+   * Alterna el estado de favorito: si ya existe lo elimina, si no lo crea.
+   * Devuelve el nuevo estado (true si quedó como favorito).
    */
   async toggleFavorito(
     idUsuario: string,
     idProyecto: string
   ): Promise<boolean> {
-    // Query simple por idUsuario y filtrado en cliente para evitar indice compuesto
+    // Query simple por idUsuario y filtrado en cliente para no
+    // requerir un índice compuesto en Firestore.
     const q = query(
       collection(db, "favoritos"),
       where("idUsuario", "==", idUsuario)
@@ -95,12 +74,10 @@ export class FavoritoRepositoryFirebase implements IFavoritoRepository {
     const existente = snapshot.docs.find((d) => d.data().idProyecto === idProyecto);
 
     if (existente) {
-      // Ya es favorito → eliminarlo
       await deleteDoc(doc(db, "favoritos", existente.id));
       return false;
     }
 
-    // No es favorito → crearlo
     await addDoc(collection(db, "favoritos"), {
       idUsuario,
       idProyecto,

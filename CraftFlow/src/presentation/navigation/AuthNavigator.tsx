@@ -4,6 +4,7 @@ import { LoginScreen } from "../../app/views/auth/LoginScreen";
 import { RegisterScreen } from "../../app/views/auth/RegisterScreen";
 import { ForgotPasswordScreen } from "../../app/views/auth/ForgotPasswordScreen";
 
+/** Rutas del stack de autenticación con sus parámetros */
 export type AuthStackParamList = {
   Login: undefined;
   Register: undefined;
@@ -13,8 +14,8 @@ export type AuthStackParamList = {
 const Stack = createNativeStackNavigator<AuthStackParamList>();
 
 /**
- * Stack de autenticación.
- * Contiene Login, Register y ForgotPassword sin tab bar.
+ * Stack que agrupa las pantallas de autenticación (Login, Register,
+ * ForgotPassword). Se muestra cuando no hay sesión iniciada.
  */
 export const AuthNavigator: React.FC = () => {
   return (

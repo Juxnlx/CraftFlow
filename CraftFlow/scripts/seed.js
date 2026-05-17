@@ -1,4 +1,3 @@
-// scripts/seed.js
 // Script de seed para poblar Firestore con datos de prueba.
 // Ejecutar desde la raiz del proyecto: node scripts/seed.js
 
@@ -12,8 +11,11 @@ const {
   getDocs,
   deleteDoc,
 } = require("firebase/firestore");
-
-// ─── Configuracion Firebase ───────────────────────────────────
+const {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+} = require("firebase/auth");
 
 const firebaseConfig = {
   apiKey: "AIzaSyBe5Ix498c2ik5Lkee6oTdOF6bjL1u_HH0",
@@ -26,8 +28,40 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
-// ─── Utilidad ─────────────────────────────────────────────────
+// Cuentas de prueba que se demuestran a los profesores.
+const CUENTAS_PRUEBA = [
+  {
+    email: "craftflow.test@gmail.com",
+    password: "Test1234",
+    nombre: "Cuenta Demo Crochet",
+    intereses: ["crochet"],
+  },
+  {
+    email: "craftflow.test2@gmail.com",
+    password: "Test1234",
+    nombre: "Cuenta Demo Ceramica",
+    intereses: ["ceramica"],
+  },
+];
+
+// Crea la cuenta en Firebase Auth si no existe; si existe, hace login.
+// En ambos casos devuelve el UID para usarlo como ID de documento en Firestore.
+async function obtenerOCrearUsuarioAuth(email, password) {
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    console.log(`  ✓ Cuenta creada en Auth: ${email}`);
+    return cred.user.uid;
+  } catch (err) {
+    if (err.code === "auth/email-already-in-use") {
+      const cred = await signInWithEmailAndPassword(auth, email, password);
+      console.log(`  ✓ Cuenta ya existia, reutilizando: ${email}`);
+      return cred.user.uid;
+    }
+    throw err;
+  }
+}
 
 async function limpiarColeccion(nombreColeccion) {
   const snapshot = await getDocs(collection(db, nombreColeccion));
@@ -36,8 +70,6 @@ async function limpiarColeccion(nombreColeccion) {
   }
   console.log(`  ✓ Coleccion "${nombreColeccion}" limpiada`);
 }
-
-// ─── Datos: Usuarios ficticios ────────────────────────────────
 
 const USUARIOS_FICTICIOS = [
   {
@@ -96,10 +128,8 @@ const USUARIOS_FICTICIOS = [
   },
 ];
 
-// ─── Datos: Proyectos ─────────────────────────────────────────
-
 const PROYECTOS = [
-  // ──── CROCHET ────
+  // Crochet
   {
     idUsuario: "user_maria",
     nombre: "Amigurumi Rana",
@@ -385,7 +415,7 @@ const PROYECTOS = [
     fechaCreacion: new Date("2026-02-08"),
     activo: true,
   },
-  // ──── CERAMICA ────
+  // Ceramica
   {
     idUsuario: "user_pedro",
     nombre: "Taza Ceramica Pintada a Mano",
@@ -564,193 +594,362 @@ const PROYECTOS = [
   },
 ];
 
-// ─── Datos: Inventario del usuario real ───────────────────────
+// Inventario y proyectos propios de cada cuenta de prueba.
+// El idUsuario se inyecta en runtime con el UID que devuelve Firebase Auth,
+// asi el script funciona aunque las cuentas se borren y se vuelvan a crear.
 
-const ID_USUARIO_REAL = "SXcdWAfT5eaz2eW6H041ptTZU6s1";
+const DATOS_TEST1_CROCHET = {
+  materiales: [
+    {
+      nombre: "Ovillo algodon verde menta",
+      categoria: "lana",
+      color: "Verde menta",
+      precio: 3.5,
+      imagen: null,
+      propiedades: { grosor: "3.5", metros: 200, tipoMaterial: "Algodon" },
+    },
+    {
+      nombre: "Ovillo algodon blanco",
+      categoria: "lana",
+      color: "Blanco",
+      precio: 2.8,
+      imagen: null,
+      propiedades: { grosor: "3", metros: 180, tipoMaterial: "Algodon" },
+    },
+    {
+      nombre: "Ovillo lana acrilica beige",
+      categoria: "lana",
+      color: "Beige",
+      precio: 2.5,
+      imagen: null,
+      propiedades: { grosor: "5", metros: 150, tipoMaterial: "Acrilico" },
+    },
+    {
+      nombre: "Ovillo algodon rosa pastel",
+      categoria: "lana",
+      color: "Rosa",
+      precio: 3.2,
+      imagen: null,
+      propiedades: { grosor: "3", metros: 170, tipoMaterial: "Algodon" },
+    },
+    {
+      nombre: "Ovillo algodon negro",
+      categoria: "lana",
+      color: "Negro",
+      precio: 2.9,
+      imagen: null,
+      propiedades: { grosor: "3", metros: 160, tipoMaterial: "Algodon" },
+    },
+    {
+      nombre: "Relleno de fibra sintetica",
+      categoria: "tela",
+      color: "Blanco",
+      precio: 5.99,
+      imagen: null,
+      propiedades: { tipoMaterial: "Fibra sintetica" },
+    },
+    {
+      nombre: "Goma elastica para pelo pack x10",
+      categoria: "tela",
+      color: null,
+      precio: 1.5,
+      imagen: null,
+      propiedades: { unidades: 10, tipoMaterial: "Elastico" },
+    },
+  ],
+  herramientas: [
+    {
+      nombre: "Aguja de crochet 3.5mm",
+      tipo: "Agujas de crochet",
+      propiedades: { grosor: "3.5" },
+      cantidad: 1,
+    },
+    {
+      nombre: "Aguja de crochet 5mm",
+      tipo: "Agujas de crochet",
+      propiedades: { grosor: "5" },
+      cantidad: 1,
+    },
+    {
+      nombre: "Aguja lanera",
+      tipo: "Agujas",
+      propiedades: {},
+      cantidad: 2,
+    },
+    {
+      nombre: "Tijeras de costura",
+      tipo: "Tijeras",
+      propiedades: {},
+      cantidad: 1,
+    },
+  ],
+  proyectos: [
+    {
+      nombre: "Llavero corazon crochet",
+      descripcion:
+        "Pequeno llavero con forma de corazon tejido a crochet en algodon rosa. Se hace en 30 minutos y es perfecto para regalar o estrenar el ganchillo.",
+      imagen: "https://loremflickr.com/600/400/crochet,heart,keychain?lock=20",
+      visibilidad: "publico",
+      dificultad: "facil",
+      etiquetas: ["Crochet"],
+      materiales: [
+        { nombre: "Hilo algodon rosa", categoria: "lana", cantidad: "10 metros" },
+        { nombre: "Relleno de fibra", categoria: "tela", cantidad: "1" },
+      ],
+      herramientas: [
+        { nombre: "Aguja de crochet 3mm", tipo: "Agujas de crochet" },
+        { nombre: "Tijeras", tipo: "Tijeras" },
+      ],
+      pasos: [
+        { numeroOrden: 1, descripcion: "Anillo magico con 6 puntos bajos.", imagen: null },
+        { numeroOrden: 2, descripcion: "Tejer dos esferas pequenas (los lobulos del corazon).", imagen: null },
+        { numeroOrden: 3, descripcion: "Unir las dos esferas en la parte superior.", imagen: null },
+        { numeroOrden: 4, descripcion: "Disminuir hasta cerrar formando la punta inferior.", imagen: null },
+        { numeroOrden: 5, descripcion: "Rellenar antes de cerrar y coser la anilla del llavero.", imagen: null },
+      ],
+    },
+    {
+      nombre: "Posavasos crochet sencillo",
+      descripcion:
+        "Posavasos redondo tejido en punto alto. Diametro 11 cm. Ideal para principiantes que quieren practicar el trabajo en redondo con cambios de color.",
+      imagen: "https://loremflickr.com/600/400/crochet,coaster,round?lock=21",
+      visibilidad: "publico",
+      dificultad: "facil",
+      etiquetas: ["Crochet"],
+      materiales: [
+        { nombre: "Hilo algodon beige", categoria: "lana", cantidad: "20 metros" },
+        { nombre: "Hilo algodon blanco", categoria: "lana", cantidad: "10 metros" },
+      ],
+      herramientas: [
+        { nombre: "Aguja de crochet 3.5mm", tipo: "Agujas de crochet" },
+        { nombre: "Tijeras", tipo: "Tijeras" },
+      ],
+      pasos: [
+        { numeroOrden: 1, descripcion: "Anillo magico con 12 puntos altos.", imagen: null },
+        { numeroOrden: 2, descripcion: "Vuelta 2: 2 puntos altos en cada punto (24pa).", imagen: null },
+        { numeroOrden: 3, descripcion: "Vuelta 3: *1pa, aum* repetir hasta cerrar (36pa).", imagen: null },
+        { numeroOrden: 4, descripcion: "Cambiar a hilo blanco y rematar con una vuelta de punto cangrejo.", imagen: null },
+      ],
+    },
+  ],
+};
 
-const MATERIALES_USUARIO = [
-  {
-    idUsuario: ID_USUARIO_REAL,
-    nombre: "Ovillo algodon verde menta",
-    categoria: "lana",
-    color: "Verde menta",
-    precio: 3.5,
-    imagen: null,
-    propiedades: { grosor: "3.5", metros: 200, tipoMaterial: "Algodon" },
-    fechaCreacion: new Date(),
-  },
-  {
-    idUsuario: ID_USUARIO_REAL,
-    nombre: "Ovillo algodon blanco",
-    categoria: "lana",
-    color: "Blanco",
-    precio: 2.8,
-    imagen: null,
-    propiedades: { grosor: "3", metros: 180, tipoMaterial: "Algodon" },
-    fechaCreacion: new Date(),
-  },
-  {
-    idUsuario: ID_USUARIO_REAL,
-    nombre: "Ovillo lana acrilica beige",
-    categoria: "lana",
-    color: "Beige",
-    precio: 2.5,
-    imagen: null,
-    propiedades: { grosor: "5", metros: 150, tipoMaterial: "Acrilico" },
-    fechaCreacion: new Date(),
-  },
-  {
-    idUsuario: ID_USUARIO_REAL,
-    nombre: "Ovillo algodon rosa pastel",
-    categoria: "lana",
-    color: "Rosa",
-    precio: 3.2,
-    imagen: null,
-    propiedades: { grosor: "3", metros: 170, tipoMaterial: "Algodon" },
-    fechaCreacion: new Date(),
-  },
-  {
-    idUsuario: ID_USUARIO_REAL,
-    nombre: "Ovillo algodon negro",
-    categoria: "lana",
-    color: "Negro",
-    precio: 2.9,
-    imagen: null,
-    propiedades: { grosor: "3", metros: 160, tipoMaterial: "Algodon" },
-    fechaCreacion: new Date(),
-  },
-  {
-    idUsuario: ID_USUARIO_REAL,
-    nombre: "Relleno de fibra sintetica",
-    categoria: "tela",
-    color: "Blanco",
-    precio: 5.99,
-    imagen: null,
-    propiedades: { tipoMaterial: "Fibra sintetica" },
-    fechaCreacion: new Date(),
-  },
-  {
-    idUsuario: ID_USUARIO_REAL,
-    nombre: "Arcilla blanca de modelar",
-    categoria: "ceramica",
-    color: null,
-    precio: 8.5,
-    imagen: null,
-    propiedades: { kilogramos: 1, tipoMaterial: "Arcilla blanca" },
-    fechaCreacion: new Date(),
-  },
-  {
-    idUsuario: ID_USUARIO_REAL,
-    nombre: "Pintura acrilica verde bosque",
-    categoria: "pintura",
-    color: "Verde",
-    precio: 4.2,
-    imagen: null,
-    propiedades: { mililitros: 100, tipoMaterial: "Acrilica" },
-    fechaCreacion: new Date(),
-  },
-  {
-    idUsuario: ID_USUARIO_REAL,
-    nombre: "Goma elastica para pelo pack x10",
-    categoria: "tela",
-    color: null,
-    precio: 1.5,
-    imagen: null,
-    propiedades: { unidades: 10, tipoMaterial: "Elastico" },
-    fechaCreacion: new Date(),
-  },
+const DATOS_TEST2_CERAMICA = {
+  materiales: [
+    {
+      nombre: "Arcilla blanca de modelar",
+      categoria: "ceramica",
+      color: null,
+      precio: 8.5,
+      imagen: null,
+      propiedades: { kilogramos: 1, tipoMaterial: "Arcilla blanca" },
+    },
+    {
+      nombre: "Arcilla roja para modelar",
+      categoria: "ceramica",
+      color: "Rojo",
+      precio: 7.9,
+      imagen: null,
+      propiedades: { kilogramos: 1, tipoMaterial: "Arcilla roja" },
+    },
+    {
+      nombre: "Pintura acrilica verde bosque",
+      categoria: "pintura",
+      color: "Verde",
+      precio: 4.2,
+      imagen: null,
+      propiedades: { mililitros: 100, tipoMaterial: "Acrilica" },
+    },
+    {
+      nombre: "Pintura acrilica dorada",
+      categoria: "pintura",
+      color: "Dorado",
+      precio: 4.5,
+      imagen: null,
+      propiedades: { mililitros: 50, tipoMaterial: "Acrilica" },
+    },
+    {
+      nombre: "Pintura acrilica terracota",
+      categoria: "pintura",
+      color: "Terracota",
+      precio: 4.0,
+      imagen: null,
+      propiedades: { mililitros: 100, tipoMaterial: "Acrilica" },
+    },
+    {
+      nombre: "Cordon de algodon fino natural",
+      categoria: "tela",
+      color: "Crudo",
+      precio: 2.5,
+      imagen: null,
+      propiedades: { metros: 5, tipoMaterial: "Algodon" },
+    },
+  ],
+  herramientas: [
+    {
+      nombre: "Rodillo de ceramica",
+      tipo: "Rodillo",
+      propiedades: {},
+      cantidad: 1,
+    },
+    {
+      nombre: "Espatula de modelar",
+      tipo: "Espatula",
+      propiedades: {},
+      cantidad: 2,
+    },
+    {
+      nombre: "Set de pinceles variados",
+      tipo: "Pinceles",
+      propiedades: { numero: 5 },
+      cantidad: 1,
+    },
+    {
+      nombre: "Esponja de ceramica",
+      tipo: "Otro",
+      propiedades: {},
+      cantidad: 1,
+    },
+    {
+      nombre: "Cuter de precision",
+      tipo: "Cuter",
+      propiedades: {},
+      cantidad: 1,
+    },
+  ],
+  proyectos: [
+    {
+      nombre: "Bandeja organica de arcilla",
+      descripcion:
+        "Pequena bandeja vaciaboslsillos hecha con arcilla blanca. Borde irregular para un acabado natural. Perfecta para llaves, anillos o monedas.",
+      imagen: "https://loremflickr.com/600/400/clay,tray,handmade,minimal?lock=22",
+      visibilidad: "publico",
+      dificultad: "facil",
+      etiquetas: ["Cerámica"],
+      materiales: [
+        { nombre: "Arcilla blanca", categoria: "ceramica", cantidad: "0.3 kg" },
+        { nombre: "Pintura acrilica dorada", categoria: "pintura", cantidad: "10 ml" },
+      ],
+      herramientas: [
+        { nombre: "Rodillo de ceramica", tipo: "Rodillo" },
+        { nombre: "Espatula de modelar", tipo: "Espatula" },
+        { nombre: "Pinceles", tipo: "Pinceles" },
+      ],
+      pasos: [
+        { numeroOrden: 1, descripcion: "Extender la arcilla a 6mm de grosor con el rodillo.", imagen: null },
+        { numeroOrden: 2, descripcion: "Recortar la forma de la bandeja a mano (12x8cm aprox).", imagen: null },
+        { numeroOrden: 3, descripcion: "Levantar los bordes con los dedos para crear el reborde.", imagen: null },
+        { numeroOrden: 4, descripcion: "Dejar secar 48 horas sobre una superficie plana.", imagen: null },
+        { numeroOrden: 5, descripcion: "Pintar el reborde con dorado para darle el toque final.", imagen: null },
+      ],
+    },
+    {
+      nombre: "Mini maceta de arcilla roja",
+      descripcion:
+        "Maceta pequena para cactus o suculentas. Hecha con arcilla roja y la tecnica del pellizco. Acabado rustico sin esmalte.",
+      imagen: "https://loremflickr.com/600/400/clay,pot,small,terracotta?lock=23",
+      visibilidad: "publico",
+      dificultad: "facil",
+      etiquetas: ["Cerámica"],
+      materiales: [
+        { nombre: "Arcilla roja", categoria: "ceramica", cantidad: "0.2 kg" },
+      ],
+      herramientas: [
+        { nombre: "Espatula de modelar", tipo: "Espatula" },
+        { nombre: "Esponja", tipo: "Otro" },
+      ],
+      pasos: [
+        { numeroOrden: 1, descripcion: "Formar una bola de arcilla del tamano de un huevo.", imagen: null },
+        { numeroOrden: 2, descripcion: "Hundir el pulgar en el centro y pellizcar hacia fuera.", imagen: null },
+        { numeroOrden: 3, descripcion: "Ir girando y subiendo las paredes con los dedos humedos.", imagen: null },
+        { numeroOrden: 4, descripcion: "Alisar el interior y exterior con la esponja.", imagen: null },
+        { numeroOrden: 5, descripcion: "Hacer un pequeno agujero de drenaje en la base.", imagen: null },
+        { numeroOrden: 6, descripcion: "Dejar secar 48-72 horas en sombra.", imagen: null },
+      ],
+    },
+  ],
+};
+
+const CUENTAS_PRUEBA_DATOS = [
+  { credenciales: CUENTAS_PRUEBA[0], datos: DATOS_TEST1_CROCHET },
+  { credenciales: CUENTAS_PRUEBA[1], datos: DATOS_TEST2_CERAMICA },
 ];
-
-const HERRAMIENTAS_USUARIO = [
-  {
-    idUsuario: ID_USUARIO_REAL,
-    nombre: "Aguja de crochet 3.5mm",
-    tipo: "Agujas de crochet",
-    propiedades: { grosor: "3.5" },
-    cantidad: 1,
-  },
-  {
-    idUsuario: ID_USUARIO_REAL,
-    nombre: "Aguja de crochet 5mm",
-    tipo: "Agujas de crochet",
-    propiedades: { grosor: "5" },
-    cantidad: 1,
-  },
-  {
-    idUsuario: ID_USUARIO_REAL,
-    nombre: "Aguja lanera",
-    tipo: "Agujas",
-    propiedades: {},
-    cantidad: 2,
-  },
-  {
-    idUsuario: ID_USUARIO_REAL,
-    nombre: "Tijeras de costura",
-    tipo: "Tijeras",
-    propiedades: {},
-    cantidad: 1,
-  },
-  {
-    idUsuario: ID_USUARIO_REAL,
-    nombre: "Rodillo de ceramica",
-    tipo: "Rodillo",
-    propiedades: {},
-    cantidad: 1,
-  },
-  {
-    idUsuario: ID_USUARIO_REAL,
-    nombre: "Set de pinceles variados",
-    tipo: "Pinceles",
-    propiedades: { numero: 5 },
-    cantidad: 1,
-  },
-];
-
-// ─── Funcion principal ────────────────────────────────────────
 
 async function seed() {
-  console.log("🌱 Iniciando seed de CraftFlow...\n");
+  console.log("Iniciando seed de CraftFlow...\n");
 
-  // Limpiar datos existentes (NO limpiar "usuarios" para no borrar el real)
-  console.log("⚠️  Limpiando datos existentes...");
+  // Importante: no limpiar "usuarios" para no borrar los documentos de las
+  // cuentas reales (se actualizan con setDoc mas abajo).
+  console.log("Limpiando datos existentes...");
   await limpiarColeccion("proyectos");
   await limpiarColeccion("materiales");
   await limpiarColeccion("herramientas");
   await limpiarColeccion("favoritos");
 
-  // Crear usuarios ficticios
-  console.log("\n👥 Creando usuarios ficticios...");
+  console.log("\nCreando usuarios ficticios...");
   for (const u of USUARIOS_FICTICIOS) {
     const { id, ...datos } = u;
     await setDoc(doc(db, "usuarios", id), datos);
     console.log(`  ✓ Usuario: ${datos.nombre}`);
   }
 
-  // Crear proyectos
-  console.log("\n📋 Creando proyectos...");
+  console.log("\nCreando proyectos publicos de usuarios ficticios...");
   for (const p of PROYECTOS) {
     await addDoc(collection(db, "proyectos"), p);
     console.log(`  ✓ Proyecto: ${p.nombre}`);
   }
 
-  // Crear inventario del usuario real
-  console.log("\n📦 Creando inventario del usuario real...");
-  for (const m of MATERIALES_USUARIO) {
-    await addDoc(collection(db, "materiales"), m);
-    console.log(`  ✓ Material: ${m.nombre}`);
+  console.log("\nPreparando cuentas de prueba en Firebase Auth...");
+  for (const { credenciales, datos } of CUENTAS_PRUEBA_DATOS) {
+    const uid = await obtenerOCrearUsuarioAuth(
+      credenciales.email,
+      credenciales.password
+    );
+
+    // El documento de usuario en Firestore comparte el UID con el de Auth.
+    await setDoc(doc(db, "usuarios", uid), {
+      email: credenciales.email,
+      nombre: credenciales.nombre,
+      fotoPerfil: null,
+      fechaRegistro: new Date(),
+      intereses: credenciales.intereses,
+      activo: true,
+    });
+    console.log(`    Documento usuario actualizado (${credenciales.nombre})`);
+
+    for (const m of datos.materiales) {
+      await addDoc(collection(db, "materiales"), {
+        ...m,
+        idUsuario: uid,
+        fechaCreacion: new Date(),
+      });
+    }
+    console.log(`    ${datos.materiales.length} materiales creados`);
+
+    for (const h of datos.herramientas) {
+      await addDoc(collection(db, "herramientas"), {
+        ...h,
+        idUsuario: uid,
+      });
+    }
+    console.log(`    ${datos.herramientas.length} herramientas creadas`);
+
+    for (const p of datos.proyectos) {
+      await addDoc(collection(db, "proyectos"), {
+        ...p,
+        idUsuario: uid,
+        fechaCreacion: new Date(),
+        activo: true,
+      });
+    }
+    console.log(`    ${datos.proyectos.length} proyectos publicados\n`);
   }
 
-  for (const h of HERRAMIENTAS_USUARIO) {
-    await addDoc(collection(db, "herramientas"), h);
-    console.log(`  ✓ Herramienta: ${h.nombre}`);
-  }
-
-  console.log("\n✅ Seed completado con exito!");
-  console.log("   Puedes abrir la app y ver los datos.");
+  console.log("Seed completado.");
   process.exit(0);
 }
 
 seed().catch((error) => {
-  console.error("❌ Error en el seed:", error);
+  console.error("Error en el seed:", error);
   process.exit(1);
 });

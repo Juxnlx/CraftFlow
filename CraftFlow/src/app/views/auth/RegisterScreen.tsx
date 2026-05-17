@@ -17,20 +17,24 @@ import { Button } from "../../../presentation/components/common/Button";
 import { Input } from "../../../presentation/components/common/Input";
 import { COLORS, SPACING, RADIUS } from "../../../config/theme";
 
+/** Props inyectadas por React Navigation a la pantalla de registro */
 type RegisterScreenProps = {
   navigation: NativeStackNavigationProp<AuthStackParamList, "Register">;
 };
 
 /**
  * Pantalla de registro con nombre, email, contraseña y confirmación.
+ * Hace validaciones locales antes de llamar al ViewModel.
  */
 export const RegisterScreen = observer(({ navigation }: RegisterScreenProps) => {
   const [nombre, setNombre] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  /** Errores de validación de campos antes de llegar a Firebase */
   const [localError, setLocalError] = useState<string | null>(null);
 
+  /** Valida los campos del formulario y, si pasa, lanza el registro. */
   const handleRegister = async () => {
     setLocalError(null);
     authVM.clearError();

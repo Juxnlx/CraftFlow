@@ -1,40 +1,28 @@
 /**
- * Representa un ítem que el usuario necesita adquirir para poder hacer
- * uno o varios de sus proyectos guardados como favoritos.
+ * Ítem que el usuario necesita adquirir para poder hacer alguno de
+ * sus proyectos guardados como favoritos.
  *
- * Se calcula al vuelo comparando los materiales y herramientas requeridos
- * por los proyectos favoritos con el inventario actual del usuario.
- * No se persiste en Firestore: es un modelo derivado de la lógica de negocio.
+ * Se calcula al vuelo comparando los materiales y herramientas que
+ * piden los proyectos favoritos con el inventario actual del usuario;
+ * no se persiste como tal en Firestore (solo se guarda la marca de
+ * "comprado" por usuario).
  *
- * El agrupamiento evita duplicados: si tres proyectos distintos necesitan
- * "Hilo algodón verde", aparece una sola vez con los tres nombres de proyecto
- * en `proyectosQueLoNecesitan`.
- *
- * @example
- * // Ítem de material con URL sugerida
- * const item: ItemCompra = {
- *   nombre: "Hilo algodón verde",
- *   esHerramienta: false,
- *   categoriaOTipo: "lana",
- *   proyectosQueLoNecesitan: ["Amigurumi Rana", "Jersey bebé"],
- *   urlCompraSugerida: "https://tienda.com/hilo-algodon"
- * };
+ * El agrupamiento evita duplicados: si tres proyectos distintos
+ * necesitan "Hilo algodón verde", aparece una sola vez con los tres
+ * nombres en `proyectosQueLoNecesitan`.
  */
 export interface ItemCompra {
   /**
-   * Clave estable del ítem ("m:nombre|categoria" o "h:nombre|tipo").
-   * Permite a la UI marcarlo como comprado y a Firestore persistir
-   * ese estado entre sesiones.
+   * Clave estable del ítem ("m:nombre|categoria" para material o
+   * "h:nombre|tipo" para herramienta). Se usa para marcarlo como
+   * comprado y para persistir ese estado en Firestore.
    */
   clave: string;
 
   /** Nombre del material o herramienta que falta por adquirir */
   nombre: string;
 
-  /**
-   * Diferencia visualmente materiales (🧶, 🎨...) y herramientas (🔧).
-   * Permite a la UI agruparlos o mostrarlos con iconos distintos.
-   */
+  /** True si es una herramienta, false si es un material */
   esHerramienta: boolean;
 
   /**
@@ -43,16 +31,13 @@ export interface ItemCompra {
    */
   categoriaOTipo: string;
 
-  /**
-   * Nombres de los proyectos favoritos que requieren este ítem.
-   * Permite a la UI mostrar chips del tipo "Para: Jersey · Amigurumi".
-   */
+  /** Nombres de los proyectos favoritos que requieren este ítem */
   proyectosQueLoNecesitan: string[];
 
   /**
-   * URL de compra sugerida, obtenida de materiales del mismo tipo que el
-   * usuario ya tiene en su inventario con `urlCompra` rellena.
-   * Null si el usuario no tiene ningún material de esa categoría con URL.
+   * URL de compra sugerida, sacada de algún material/herramienta de la
+   * misma categoría que el usuario ya tenga con `urlCompra` rellena.
+   * Null si no hay ninguna referencia previa.
    */
   urlCompraSugerida: string | null;
 }

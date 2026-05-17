@@ -7,9 +7,9 @@ import {
   Animated,
   Easing,
   StyleSheet,
-  SafeAreaView,
   Alert,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { observer } from "mobx-react-lite";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RouteProp } from "@react-navigation/native";
@@ -25,14 +25,16 @@ import { Button } from "../../../presentation/components/common/Button";
 import { LoadingSpinner } from "../../../presentation/components/common/LoadingSpinner";
 import { COLORS, SPACING, RADIUS } from "../../../config/theme";
 
+/** Props inyectadas por React Navigation a la pantalla de detalle de proyecto */
 type ProjectDetailScreenProps = {
   navigation: NativeStackNavigationProp<any>;
   route: RouteProp<{ ProjectDetail: { idProyecto: string } }, "ProjectDetail">;
 };
 
 /**
- * Pantalla de detalle de proyecto compartida entre todos los tabs.
- * Muestra imagen, info, materiales con disponibilidad, pasos y acciones.
+ * Pantalla de detalle de proyecto compartida entre todos los tabs. Muestra
+ * la imagen con efecto parallax, info básica, mini tarjeta de match con
+ * los materiales/herramientas que tiene el usuario, los pasos y acciones.
  */
 export const ProjectDetailScreen = observer(
   ({ navigation, route }: ProjectDetailScreenProps) => {
@@ -128,6 +130,7 @@ export const ProjectDetailScreen = observer(
       }
     };
 
+    /** Pide confirmación y elimina el proyecto (solo para el autor). */
     const handleEliminar = () => {
       Alert.alert(
         "Eliminar proyecto",
@@ -426,14 +429,6 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 6,
     zIndex: 10,
-  },
-  backText: {
-    fontSize: 22,
-    lineHeight: 22,
-    color: COLORS.text,
-    fontWeight: "700",
-    textAlign: "center",
-    includeFontPadding: false,
   },
   canMakeBadge: {
     position: "absolute",

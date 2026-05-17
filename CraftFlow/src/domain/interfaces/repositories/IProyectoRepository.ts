@@ -42,11 +42,4 @@ export interface IProyectoRepository {
    * @returns Promesa que se resuelve al eliminar el proyecto
    */
   eliminarProyecto(idProyecto: string): Promise<void>;
-
-  /**
-   * Busca proyectos basándose en un texto.
-   * @param texto - Texto a buscar en el título o descripción
-   * @returns Promesa que resuelve a un array de proyectos coincidentes
-   */
-  buscarProyectos(texto: string): Promise<Proyecto[]>;
 }

@@ -13,15 +13,23 @@ import { Usuario } from "../../domain/entities/Usuario";
  * Centraliza la carga del perfil, la edición de datos y la subida de avatar.
  */
 export class UsuarioViewModel {
+  /** Datos del usuario logueado actualmente, o null si no se ha cargado */
   usuarioActual: Usuario | null = null;
+  /** Indica si se está cargando el perfil desde Firestore */
   isLoading: boolean = false;
+  /** Indica si se está guardando un cambio del perfil */
   isSaving: boolean = false;
+  /** Mensaje de error a mostrar en la UI, o null si no hay */
   mensajeError: string | null = null;
 
+  /** Caso de uso para obtener un usuario por su UID */
   private _getUsuarioPorIdUseCase: IGetUsuarioPorIdUseCase;
+  /** Caso de uso para actualizar los datos del usuario */
   private _updateUsuarioUseCase: IUpdateUsuarioUseCase;
+  /** Caso de uso para subir imágenes (avatar) a Cloudinary */
   private _uploadImageUseCase: IUploadImageUseCase;
 
+  /** Activa MobX y resuelve los casos de uso desde el contenedor de DI. */
   constructor() {
     makeAutoObservable(this);
     this._getUsuarioPorIdUseCase = container.get<IGetUsuarioPorIdUseCase>(
@@ -106,18 +114,17 @@ export class UsuarioViewModel {
     });
 
     try {
-      // Paso 1: subir la imagen a Cloudinary (carpeta "avatares")
+      // Subir la imagen a Cloudinary (carpeta "avatares")
       const { url } = await this._uploadImageUseCase.execute(
         uriLocal,
         "avatares"
       );
 
-      // Paso 2: guardar la URL pública en Firestore
+      // Guardar la URL devuelta en el documento del usuario
       await this._updateUsuarioUseCase.execute(idUsuario, {
         fotoPerfil: url,
       } as Partial<Usuario>);
 
-      // Paso 3: refrescar el usuario local con la nueva foto
       await this.cargarUsuario(idUsuario);
 
       runInAction(() => {

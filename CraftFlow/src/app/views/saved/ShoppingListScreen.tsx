@@ -6,8 +6,8 @@ import {
   TouchableOpacity,
   Linking,
   StyleSheet,
-  SafeAreaView,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { observer } from "mobx-react-lite";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useFocusEffect } from "@react-navigation/native";
@@ -20,6 +20,7 @@ import { FadeInItem } from "../../../presentation/components/common/FadeInItem";
 import { ItemCompra } from "../../../domain/entities/ItemCompra";
 import { COLORS, SPACING, RADIUS } from "../../../config/theme";
 
+/** Props inyectadas por React Navigation a la lista de la compra */
 type ShoppingListScreenProps = {
   navigation: NativeStackNavigationProp<SavedStackParamList, "ShoppingList">;
 };
@@ -39,10 +40,7 @@ const formatearCategoria = (cat: string): string => {
   return cat.charAt(0).toUpperCase() + cat.slice(1);
 };
 
-/**
- * Devuelve el emoji adecuado para un ítem.
- * Si es herramienta, siempre usa 🔧. Si es material, usa el emoji por categoría.
- */
+/** Devuelve 🔧 para herramientas o el emoji de la categoría para materiales. */
 const getEmoji = (item: ItemCompra): string => {
   if (item.esHerramienta) return "🔧";
   return EMOJIS_CATEGORIA[item.categoriaOTipo.toLowerCase()] || "📦";
@@ -57,9 +55,8 @@ export const ShoppingListScreen = observer(
   ({ navigation }: ShoppingListScreenProps) => {
     const userId = auth.currentUser?.uid || "";
 
-    // Recargar cada vez que la pantalla recibe foco. Así un favorito
-    // recién marcado o un material recién añadido al inventario se
-    // reflejan al instante al volver a entrar a la lista.
+    // Recargamos la lista cada vez que la pantalla recibe foco para
+    // reflejar cambios recientes en favoritos o inventario.
     useFocusEffect(
       useCallback(() => {
         if (userId) {
@@ -247,7 +244,6 @@ const styles = StyleSheet.create({
   },
   scroll: {
     padding: SPACING.md,
-    paddingTop: SPACING.xl + 16,
     paddingBottom: SPACING.xl,
   },
   header: {

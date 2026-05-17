@@ -1,10 +1,8 @@
 import { injectable } from "inversify";
-import "reflect-metadata";
 import {
   collection,
   doc,
   addDoc,
-  getDoc,
   getDocs,
   updateDoc,
   deleteDoc,
@@ -13,28 +11,17 @@ import {
 } from "firebase/firestore";
 import { db } from "../../config/firebaseConfig";
 import { IMaterialRepository } from "../../domain/interfaces/repositories/IMaterialRepository";
-import { Material } from "../../domain/entities/Material";
-import { CategoriaType } from "../../domain/entities/Material";
+import { Material, CategoriaType } from "../../domain/entities/Material";
 
 /**
- * Implementación del repositorio de materiales usando Firebase Firestore.
+ * Implementación del repositorio de materiales con Firebase Firestore.
  *
- * Trabaja con la colección "materiales" donde cada documento representa
- * un material del inventario de un usuario. Las queries filtran siempre
- * por idUsuario para que cada usuario solo vea sus propios materiales.
- *
- * @example
- * const repo = container.get<IMaterialRepository>(TYPES.IMaterialRepository);
- * const materiales = await repo.getMaterialesPorUsuario("user123");
+ * Trabaja con la colección "materiales", filtrando siempre por
+ * idUsuario para que cada usuario solo acceda a su propio inventario.
  */
 @injectable()
 export class MaterialRepositoryFirebase implements IMaterialRepository {
-  /**
-   * Obtiene todos los materiales de un usuario.
-   *
-   * @param idUsuario - ID del usuario dueño de los materiales
-   * @returns Promesa que resuelve a un array de materiales del usuario
-   */
+  /** Devuelve todos los materiales del inventario de un usuario. */
   async getMaterialesPorUsuario(idUsuario: string): Promise<Material[]> {
     const q = query(
       collection(db, "materiales"),
@@ -60,43 +47,7 @@ export class MaterialRepositoryFirebase implements IMaterialRepository {
     });
   }
 
-  /**
-   * Obtiene un material específico por su ID.
-   *
-   * @param idMaterial - ID del material a buscar
-   * @returns Promesa que resuelve al material encontrado
-   * @throws Error si el material no existe en Firestore
-   */
-  async getMaterialPorId(idMaterial: string): Promise<Material> {
-    const docRef = doc(db, "materiales", idMaterial);
-    const snapshot = await getDoc(docRef);
-
-    if (!snapshot.exists()) {
-      throw new Error(`Material con ID ${idMaterial} no encontrado`);
-    }
-
-    const data = snapshot.data();
-    return new Material(
-      snapshot.id,
-      data.idUsuario,
-      data.nombre,
-      data.categoria as CategoriaType,
-      data.color || null,
-      data.precio ?? null,
-      data.imagen || null,
-      data.propiedades || {},
-      data.fechaCreacion?.toDate() || new Date(),
-      data.urlCompra || null
-    );
-  }
-
-  /**
-   * Crea un nuevo material en Firestore.
-   * El ID se genera automáticamente por Firestore (addDoc).
-   *
-   * @param material - Objeto material a persistir
-   * @returns Promesa que resuelve al ID del material creado
-   */
+  /** Crea un nuevo material y devuelve el ID generado por Firestore. */
   async crearMaterial(material: Material): Promise<string> {
     const docRef = await addDoc(collection(db, "materiales"), {
       idUsuario: material.idUsuario,
@@ -114,20 +65,12 @@ export class MaterialRepositoryFirebase implements IMaterialRepository {
     return docRef.id;
   }
 
-  /**
-   * Actualiza los datos de un material existente.
-   * Solo se actualizan los campos incluidos en el Partial.
-   *
-   * @param idMaterial - ID del material a actualizar
-   * @param material - Objeto con los campos parciales a actualizar
-   * @returns Promesa que se resuelve al completar la actualización
-   */
+  /** Actualiza solo los campos definidos en el objeto parcial. */
   async actualizarMaterial(
     idMaterial: string,
     material: Partial<Material>
   ): Promise<void> {
     const docRef = doc(db, "materiales", idMaterial);
-    // Se construye un objeto solo con los campos definidos
     const datosActualizados: Record<string, unknown> = {};
 
     if (material.nombre !== undefined) datosActualizados.nombre = material.nombre;
@@ -141,12 +84,7 @@ export class MaterialRepositoryFirebase implements IMaterialRepository {
     await updateDoc(docRef, datosActualizados);
   }
 
-  /**
-   * Elimina un material de Firestore.
-   *
-   * @param idMaterial - ID del material a eliminar
-   * @returns Promesa que se resuelve al eliminar el material
-   */
+  /** Elimina el material de Firestore. */
   async eliminarMaterial(idMaterial: string): Promise<void> {
     const docRef = doc(db, "materiales", idMaterial);
     await deleteDoc(docRef);

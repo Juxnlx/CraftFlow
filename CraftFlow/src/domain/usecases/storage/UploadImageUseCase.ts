@@ -1,5 +1,4 @@
 import { injectable, inject } from "inversify";
-import "reflect-metadata";
 import { TYPES } from "../../../core/types";
 import { IUploadImageUseCase } from "../../interfaces/usecases/IStorageUseCases";
 import {
@@ -8,13 +7,17 @@ import {
   ResultadoSubida,
 } from "../../interfaces/repositories/IStorageRepository";
 
+/**
+ * Caso de uso para subir una imagen al almacenamiento remoto.
+ *
+ * Se mantiene como fachada fina sobre el repositorio para poder añadir
+ * en el futuro validaciones (tamaño máximo, compresión, etc.) sin
+ * tocar ni la implementación de almacenamiento ni el ViewModel.
+ */
 @injectable()
 export class UploadImageUseCase implements IUploadImageUseCase {
   private _storageRepository: IStorageRepository;
 
-  /**
-   * @param storageRepository - Repositorio de almacenamiento inyectado
-   */
   constructor(
     @inject(TYPES.IStorageRepository) storageRepository: IStorageRepository
   ) {
@@ -22,10 +25,8 @@ export class UploadImageUseCase implements IUploadImageUseCase {
   }
 
   /**
-   * Delega la subida de la imagen al repositorio de almacenamiento.
-   * La capa de use case se mantiene fina a propósito: permite añadir en el
-   * futuro validaciones (tamaño máximo, compresión, logging) sin tocar ni el
-   * repositorio ni el viewmodel que lo invoca.
+   * Sube una imagen local al almacenamiento remoto.
+   * @returns URL pública y publicId del recurso almacenado
    */
   async execute(
     uriLocal: string,

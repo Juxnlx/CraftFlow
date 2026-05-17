@@ -1,5 +1,4 @@
 import { injectable } from "inversify";
-import "reflect-metadata";
 import {
   collection,
   doc,
@@ -19,19 +18,18 @@ import {
 } from "../../domain/entities/ProyectoEnProgreso";
 
 /**
- * Implementación del repositorio de seguimientos de proyectos usando Firestore.
+ * Implementación del repositorio de seguimientos con Firebase Firestore.
  *
- * Trabaja con la colección "proyectosEnProgreso" donde cada documento
+ * Trabaja con la colección "proyectosEnProgreso", donde cada documento
  * representa el avance de un usuario sobre un proyecto. Las queries
- * filtran siempre por idUsuario para que cada usuario solo vea sus
- * propios seguimientos.
+ * filtran siempre por idUsuario para que cada usuario solo vea los suyos.
  */
 @injectable()
 export class ProyectoEnProgresoRepositoryFirebase
   implements IProyectoEnProgresoRepository {
   /**
-   * Convierte un documento Firestore en una instancia de la entidad.
-   * Centralizado para evitar duplicar la lógica de conversión.
+   * Convierte un documento de Firestore en una instancia de la entidad.
+   * Centralizado para no duplicar la lógica de mapeo en cada lectura.
    */
   private _toEntity(id: string, data: any): ProyectoEnProgreso {
     return new ProyectoEnProgreso(
@@ -48,14 +46,15 @@ export class ProyectoEnProgresoRepositoryFirebase
     );
   }
 
+  /**
+   * Devuelve el seguimiento activo de un usuario sobre un proyecto, o null
+   * si no existe. Filtra los completados en cliente para no requerir un
+   * índice compuesto extra en Firestore.
+   */
   async getProyectoEnProgreso(
     idUsuario: string,
     idProyecto: string
   ): Promise<ProyectoEnProgreso | null> {
-    // Buscamos seguimientos del usuario sobre ese proyecto que estén
-    // todavía en progreso (no completados). Filtramos completados en
-    // cliente para evitar la necesidad de un índice compuesto extra
-    // en Firestore.
     const q = query(
       collection(db, "proyectosEnProgreso"),
       where("idUsuario", "==", idUsuario),
@@ -71,6 +70,7 @@ export class ProyectoEnProgresoRepositoryFirebase
     return this._toEntity(enProgreso.id, enProgreso.data());
   }
 
+  /** Devuelve los seguimientos en curso del usuario (pantalla "Sigue trabajando"). */
   async getMisProyectosEnProgreso(
     idUsuario: string
   ): Promise<ProyectoEnProgreso[]> {
@@ -84,6 +84,10 @@ export class ProyectoEnProgresoRepositoryFirebase
     return snapshot.docs.map((d) => this._toEntity(d.id, d.data()));
   }
 
+  /**
+   * Devuelve los proyectos completados por el usuario, ordenados por
+   * fecha de completado descendente (los más recientes primero).
+   */
   async getMisProyectosCompletados(
     idUsuario: string
   ): Promise<ProyectoEnProgreso[]> {
@@ -94,7 +98,6 @@ export class ProyectoEnProgresoRepositoryFirebase
     );
     const snapshot = await getDocs(q);
 
-    // Ordenamos por fechaCompletado descendente (los más recientes primero)
     return snapshot.docs
       .map((d) => this._toEntity(d.id, d.data()))
       .sort((a, b) => {
@@ -104,6 +107,7 @@ export class ProyectoEnProgresoRepositoryFirebase
       });
   }
 
+  /** Crea un nuevo seguimiento y devuelve el ID generado por Firestore. */
   async crearProyectoEnProgreso(
     proyectoEnProgreso: ProyectoEnProgreso
   ): Promise<string> {
@@ -122,12 +126,12 @@ export class ProyectoEnProgresoRepositoryFirebase
     return docRef.id;
   }
 
+  /** Actualiza solo los campos definidos en el objeto parcial. */
   async actualizarProyectoEnProgreso(
     idSeguimiento: string,
     datos: Partial<ProyectoEnProgreso>
   ): Promise<void> {
     const docRef = doc(db, "proyectosEnProgreso", idSeguimiento);
-    // Solo actualizamos los campos definidos en el Partial
     const datosActualizados: Record<string, unknown> = {};
 
     if (datos.fechaCompletado !== undefined)
@@ -145,6 +149,7 @@ export class ProyectoEnProgresoRepositoryFirebase
     await updateDoc(docRef, datosActualizados);
   }
 
+  /** Elimina un seguimiento (cuando el usuario abandona el proyecto). */
   async eliminarProyectoEnProgreso(idSeguimiento: string): Promise<void> {
     const docRef = doc(db, "proyectosEnProgreso", idSeguimiento);
     await deleteDoc(docRef);

@@ -5,8 +5,8 @@ import {
   FlatList,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { observer } from "mobx-react-lite";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useFocusEffect } from "@react-navigation/native";
@@ -25,13 +25,15 @@ import { FadeInItem } from "../../../presentation/components/common/FadeInItem";
 import { Proyecto } from "../../../domain/entities/Proyecto";
 import { COLORS, SPACING, RADIUS } from "../../../config/theme";
 
+/** Props inyectadas por React Navigation a la pantalla de guardados */
 type SavedScreenProps = {
   navigation: NativeStackNavigationProp<SavedStackParamList, "SavedMain">;
 };
 
 /**
- * Pantalla de proyectos guardados como favoritos.
- * Carga los favoritos y luego obtiene el proyecto completo de cada uno.
+ * Pantalla de proyectos guardados como favoritos. Carga los favoritos
+ * del usuario y luego pide el proyecto completo de cada uno para
+ * mostrarlos como tarjetas.
  */
 export const SavedScreen = observer(({ navigation }: SavedScreenProps) => {
   const userId = auth.currentUser?.uid || "";
@@ -43,10 +45,9 @@ export const SavedScreen = observer(({ navigation }: SavedScreenProps) => {
       const cargar = async () => {
         if (!userId) return;
         setCargando(true);
-        // Refrescamos también inventario y recomendaciones porque la card
-        // del proyecto y el detalle leen de ahí. Si el usuario cambia el
-        // inventario y vuelve aquí sin pasar por Home, queremos que el
-        // matchPercent y los ✓/✗ del detalle estén al día.
+        // También refrescamos inventario y recomendaciones para que el
+        // matchPercent de las cards esté al día si el usuario llega aquí
+        // sin pasar antes por Home.
         await Promise.all([
           favoritoVM.cargarFavoritos(userId),
           materialVM.cargarMateriales(userId),
@@ -68,9 +69,8 @@ export const SavedScreen = observer(({ navigation }: SavedScreenProps) => {
     return <LoadingSpinner />;
   }
 
-  // Filtrar dinámicamente por los favoritos actuales: cuando el usuario quita
-  // un proyecto del corazón, desaparece al instante de la lista sin esperar
-  // a salir y volver. La carga inicial sigue siendo el snapshot de Firebase.
+  // Cruzamos los proyectos con el Set de favoritos para que, al quitar
+  // un corazón, la tarjeta desaparezca de la lista sin recargar.
   const proyectosVisibles = proyectosGuardados.filter((p) =>
     favoritoVM.favoritosIds.has(p.id)
   );
@@ -165,7 +165,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.md,
-    paddingTop: SPACING.xl + 16,
   },
   titleRow: {
     flexDirection: "row",

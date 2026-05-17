@@ -8,12 +8,19 @@ import {
 } from "react-native";
 import { COLORS, SPACING, RADIUS } from "../../../config/theme";
 
+/** Props del botón reutilizable */
 interface ButtonProps {
+  /** Texto que se muestra en el botón */
   title: string;
+  /** Acción a ejecutar al pulsar */
   onPress: () => void;
+  /** Variante visual; por defecto "primary" */
   variant?: "primary" | "outline" | "danger";
+  /** Si es true muestra un spinner en lugar del texto */
   loading?: boolean;
+  /** Desactiva la interacción y baja la opacidad */
   disabled?: boolean;
+  /** Estilos adicionales aplicados al contenedor */
   style?: ViewStyle;
 }
 

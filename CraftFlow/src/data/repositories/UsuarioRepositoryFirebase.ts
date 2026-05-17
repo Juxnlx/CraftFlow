@@ -1,13 +1,8 @@
 import { injectable } from "inversify";
-import "reflect-metadata";
 import {
-  collection,
   doc,
   getDoc,
-  getDocs,
   updateDoc,
-  query,
-  where,
   arrayUnion,
   arrayRemove,
 } from "firebase/firestore";
@@ -16,26 +11,19 @@ import { IUsuarioRepository } from "../../domain/interfaces/repositories/IUsuari
 import { Usuario } from "../../domain/entities/Usuario";
 
 /**
- * Implementación del repositorio de usuarios usando Firebase Firestore.
+ * Implementación del repositorio de usuarios con Firebase Firestore.
  *
- * Trabaja con la colección "usuarios" donde el ID de cada documento
- * es el UID de Firebase Authentication (no autogenerado por Firestore).
+ * Trabaja con la colección "usuarios" donde el ID del documento coincide
+ * con el UID de Firebase Authentication (no es autogenerado por Firestore).
  *
- * Este repositorio gestiona los datos del perfil, no la sesión.
- * La sesión (login/logout) la gestiona AuthRepositoryFirebase.
- *
- * @example
- * const repo = container.get<IUsuarioRepository>(TYPES.IUsuarioRepository);
- * const usuario = await repo.getUsuarioPorId("abc123Firebase");
+ * Gestiona los datos del perfil. La sesión (login, logout, registro)
+ * la gestiona AuthRepositoryFirebase.
  */
 @injectable()
 export class UsuarioRepositoryFirebase implements IUsuarioRepository {
   /**
-   * Obtiene un usuario por su ID desde Firestore.
-   *
-   * @param idUsuario - ID del usuario (UID de Firebase Auth)
-   * @returns Promesa que resuelve al usuario encontrado
-   * @throws Error si el usuario no existe en Firestore
+   * Devuelve un usuario a partir de su UID.
+   * Lanza error si el documento no existe en Firestore.
    */
   async getUsuarioPorId(idUsuario: string): Promise<Usuario> {
     const docRef = doc(db, "usuarios", idUsuario);
@@ -57,14 +45,7 @@ export class UsuarioRepositoryFirebase implements IUsuarioRepository {
     );
   }
 
-  /**
-   * Actualiza los datos del perfil de un usuario.
-   * Solo se actualizan los campos incluidos en el Partial.
-   *
-   * @param idUsuario - ID del usuario a actualizar
-   * @param datos - Campos parciales a actualizar
-   * @returns Promesa que se resuelve al completar la actualización
-   */
+  /** Actualiza solo los campos definidos en el objeto parcial. */
   async actualizarUsuario(
     idUsuario: string,
     datos: Partial<Usuario>
@@ -81,45 +62,8 @@ export class UsuarioRepositoryFirebase implements IUsuarioRepository {
   }
 
   /**
-   * Busca usuarios activos cuyo nombre coincida parcialmente con el texto.
-   *
-   * Firestore no soporta búsqueda full-text nativa, así que se traen
-   * todos los usuarios activos y se filtran en el cliente.
-   * Para un TFG es aceptable porque no habrá millones de usuarios.
-   * En producción se usaría Algolia o Firebase Extensions.
-   *
-   * @param texto - Texto a buscar en el nombre del usuario
-   * @returns Promesa que resuelve a un array de usuarios coincidentes
-   */
-  async buscarUsuarios(texto: string): Promise<Usuario[]> {
-    const q = query(
-      collection(db, "usuarios"),
-      where("activo", "==", true)
-    );
-    const snapshot = await getDocs(q);
-    const textoBusqueda = texto.toLowerCase();
-
-    return snapshot.docs
-      .map((docSnap) => {
-        const data = docSnap.data();
-        return new Usuario(
-          docSnap.id,
-          data.email,
-          data.nombre,
-          data.fotoPerfil || null,
-          data.fechaRegistro?.toDate() || new Date(),
-          data.intereses || [],
-          data.activo ?? true
-        );
-      })
-      .filter((usuario) =>
-        usuario.nombre.toLowerCase().includes(textoBusqueda)
-      );
-  }
-
-  /**
-   * Devuelve las claves de los ítems de la lista de la compra que el usuario
-   * ya marcó como comprados. Si el campo no existe en Firestore, devuelve [].
+   * Devuelve las claves de los ítems de la lista de la compra que el
+   * usuario ya marcó como comprados. Si el campo no existe, devuelve [].
    */
   async getItemsComprados(idUsuario: string): Promise<string[]> {
     const snapshot = await getDoc(doc(db, "usuarios", idUsuario));
@@ -128,8 +72,9 @@ export class UsuarioRepositoryFirebase implements IUsuarioRepository {
   }
 
   /**
-   * Marca o desmarca un ítem como comprado usando arrayUnion/arrayRemove
-   * para que dos pulsaciones simultáneas no se pisen.
+   * Marca o desmarca un ítem como comprado.
+   * Se usan arrayUnion/arrayRemove para que dos pulsaciones simultáneas
+   * desde dispositivos distintos no se pisen.
    */
   async setItemComprado(
     idUsuario: string,

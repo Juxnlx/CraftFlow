@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -6,9 +6,9 @@ import {
   TouchableOpacity,
   Image,
   StyleSheet,
-  SafeAreaView,
   Alert,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { observer } from "mobx-react-lite";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { ProfileStackParamList } from "../../../presentation/navigation/MainNavigator";
@@ -19,12 +19,13 @@ import { Input } from "../../../presentation/components/common/Input";
 import { COLORS, SPACING, RADIUS } from "../../../config/theme";
 import * as ImagePicker from "expo-image-picker";
 
+/** Props inyectadas por React Navigation a la pantalla de editar perfil */
 type EditProfileScreenProps = {
   navigation: NativeStackNavigationProp<ProfileStackParamList, "EditProfile">;
 };
 
-// Intereses con emoji para que el selector sea más reconocible visualmente.
-// Coinciden con las categorías de materiales de la app.
+// Intereses con emoji para el selector. Coinciden con las categorías
+// de materiales de la app.
 const INTERESES_DISPONIBLES: { key: string; label: string; emoji: string }[] = [
   { key: "crochet", label: "Crochet", emoji: "🧶" },
   { key: "pintura", label: "Pintura", emoji: "🎨" },
@@ -49,20 +50,70 @@ export const EditProfileScreen = observer(
     const [intereses, setIntereses] = useState<string[]>([]);
     const [avatarLocal, setAvatarLocal] = useState<string | null>(null);
 
+    // Snapshot del formulario al cargar para detectar cambios sin guardar
+    // y avisar al usuario antes de perderlos.
+    const originalSnapshot = useRef<string>("");
+    const guardandoOk = useRef(false);
+
+    /** Serializa el estado actual del formulario para comparar. */
+    const getCurrentSnapshot = () =>
+      JSON.stringify({ nombre, intereses, avatarLocal });
+
+    /** Indica si el usuario ha modificado algo desde la última carga. */
+    const hasUnsavedChanges = (): boolean => {
+      if (!originalSnapshot.current) return false;
+      return getCurrentSnapshot() !== originalSnapshot.current;
+    };
+
     useEffect(() => {
       if (userId) {
         usuarioVM.cargarUsuario(userId);
       }
     }, [userId]);
 
-    // Cuando llegan los datos del usuario, rellenar campos
+    // Cuando llegan los datos del usuario, rellenar campos y fijar snapshot.
     useEffect(() => {
       if (usuario) {
         setNombre(usuario.nombre);
         setIntereses([...usuario.intereses]);
+        // El timeout asegura que los setState anteriores se han aplicado.
+        setTimeout(() => {
+          originalSnapshot.current = JSON.stringify({
+            nombre: usuario.nombre,
+            intereses: [...usuario.intereses],
+            avatarLocal: null,
+          });
+        }, 100);
       }
     }, [usuario]);
 
+    // Aviso de cambios sin guardar al salir (header back, swipe iOS, back físico)
+    useEffect(() => {
+      const unsubscribe = navigation.addListener("beforeRemove", (e) => {
+        if (guardandoOk.current) return;
+        if (!hasUnsavedChanges()) return;
+        e.preventDefault();
+        Alert.alert(
+          "¿Salir sin guardar?",
+          "Vas a perder los cambios del perfil.",
+          [
+            {
+              text: "Salir",
+              style: "destructive",
+              onPress: () => navigation.dispatch(e.data.action),
+            },
+            {
+              text: "Continuar editando",
+              style: "cancel",
+            },
+          ]
+        );
+      });
+      return unsubscribe;
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [navigation, nombre, intereses, avatarLocal]);
+
+    /** Añade o quita un interés de la selección actual. */
     const toggleInteres = (clave: string) => {
       if (intereses.includes(clave)) {
         setIntereses(intereses.filter((i) => i !== clave));
@@ -71,6 +122,7 @@ export const EditProfileScreen = observer(
       }
     };
 
+    /** Abre la galería del dispositivo para escoger una nueva foto de perfil. */
     const handlePickAvatar = async () => {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ["images"],
@@ -84,6 +136,10 @@ export const EditProfileScreen = observer(
       }
     };
 
+    /**
+     * Valida el formulario y guarda los cambios. Si hay avatar nuevo,
+     * lo sube primero a Cloudinary y luego actualiza nombre e intereses.
+     */
     const handleGuardar = async () => {
       if (!nombre.trim()) {
         Alert.alert("Error", "El nombre no puede estar vacío");
@@ -109,6 +165,7 @@ export const EditProfileScreen = observer(
       });
 
       if (exito) {
+        guardandoOk.current = true;
         navigation.goBack();
       } else {
         Alert.alert(

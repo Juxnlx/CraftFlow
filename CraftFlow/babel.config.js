@@ -5,9 +5,8 @@ module.exports = function (api) {
     plugins: [
       'babel-plugin-transform-typescript-metadata',
       ['@babel/plugin-proposal-decorators', { legacy: true }],
-      // Carga variables del archivo .env y las expone como módulo "@env".
-      // allowUndefined: false fuerza un error en build si falta una variable,
-      // evitando bugs silenciosos en producción.
+      // Carga variables de .env como módulo "@env".
+      // allowUndefined: false evita bugs silenciosos si falta alguna variable.
       [
         'module:react-native-dotenv',
         {

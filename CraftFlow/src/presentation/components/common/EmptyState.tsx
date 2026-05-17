@@ -2,9 +2,13 @@ import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { COLORS, SPACING } from "../../../config/theme";
 
+/** Props del estado vacío */
 interface EmptyStateProps {
+  /** Emoji o icono grande a mostrar */
   icon: string;
+  /** Título principal del mensaje */
   title: string;
+  /** Texto secundario opcional debajo del título */
   subtitle?: string;
 }
 

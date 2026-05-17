@@ -5,9 +5,9 @@ import {
   SectionList,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
   Alert,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { observer } from "mobx-react-lite";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { InventoryStackParamList } from "../../../presentation/navigation/MainNavigator";
@@ -20,12 +20,13 @@ import { Button } from "../../../presentation/components/common/Button";
 import { FadeInItem } from "../../../presentation/components/common/FadeInItem";
 import { COLORS, SPACING, RADIUS } from "../../../config/theme";
 
+/** Props inyectadas por React Navigation a la pantalla de inventario */
 type InventoryScreenProps = {
   navigation: NativeStackNavigationProp<InventoryStackParamList, "InventoryMain">;
 };
 
-// Etiquetas de las categorías: emoji + nombre legible.
-// Se desglosan en dos campos para poder mostrarlos con distinto tamaño/estilo.
+// Emoji y label de cada categoría, separados para poder pintarlos con
+// estilos distintos (emoji pequeño + título en mayúsculas).
 const CATEGORIA_EMOJIS: Record<string, string> = {
   lana: "🧶",
   pintura: "🎨",
@@ -42,10 +43,15 @@ const CATEGORIA_LABELS: Record<string, string> = {
   papel: "Papel / Cartón",
 };
 
+/** Sección de la SectionList: agrupa materiales o herramientas */
 interface Seccion {
+  /** Emoji que precede al título de la sección */
   emoji: string;
+  /** Nombre legible de la sección */
   titulo: string;
+  /** Ítems que pertenecen a la sección */
   data: any[];
+  /** Indica qué tarjeta usar al renderizar cada ítem */
   tipo: "material" | "herramienta";
 }
 
@@ -106,6 +112,7 @@ export const InventoryScreen = observer(
       });
     }
 
+    /** Pide confirmación y elimina un material del inventario. */
     const handleDeleteMaterial = (id: string, nombre: string) => {
       Alert.alert(
         "Eliminar material",
@@ -121,6 +128,7 @@ export const InventoryScreen = observer(
       );
     };
 
+    /** Pide confirmación y elimina una herramienta del inventario. */
     const handleDeleteHerramienta = (id: string, nombre: string) => {
       Alert.alert(
         "Eliminar herramienta",
@@ -282,7 +290,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.md,
-    paddingTop: SPACING.xl + 16,
     gap: SPACING.md,
   },
   title: {

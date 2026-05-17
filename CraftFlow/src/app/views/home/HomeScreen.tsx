@@ -7,9 +7,9 @@ import {
   TouchableOpacity,
   Image,
   StyleSheet,
-  SafeAreaView,
   Alert,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { observer } from "mobx-react-lite";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useFocusEffect } from "@react-navigation/native";
@@ -32,13 +32,12 @@ import { EmptyState } from "../../../presentation/components/common/EmptyState";
 import { FadeInItem } from "../../../presentation/components/common/FadeInItem";
 import { COLORS, SPACING, RADIUS } from "../../../config/theme";
 
+/** Props inyectadas por React Navigation a la pantalla principal */
 type HomeScreenProps = {
   navigation: NativeStackNavigationProp<HomeStackParamList, "HomeMain">;
 };
 
-/**
- * Devuelve un saludo apropiado según la hora del día.
- */
+/** Devuelve el saludo y emoji apropiados según la hora del día. */
 const construirSaludo = (): { texto: string; emoji: string } => {
   const hora = new Date().getHours();
   if (hora < 12) return { texto: "Buenos días", emoji: "☀️" };
@@ -46,10 +45,7 @@ const construirSaludo = (): { texto: string; emoji: string } => {
   return { texto: "Buenas noches", emoji: "🌙" };
 };
 
-/**
- * Formatea la fecha actual en español de forma humana.
- * Ej: "lunes, 23 de abril"
- */
+/** Formatea la fecha actual en español como "lunes, 23 de abril". */
 const formatearFechaActual = (): string => {
   try {
     return new Date().toLocaleDateString("es-ES", {
@@ -142,6 +138,7 @@ export const HomeScreen = observer(({ navigation }: HomeScreenProps) => {
     });
   }, [proyectoEnProgresoVM.proyectosEnProgreso]);
 
+  /** Pide confirmación y abandona un proyecto en curso. */
   const handleAbandonar = (idSeguimiento: string, nombre: string) => {
     Alert.alert(
       "Abandonar proyecto",
@@ -157,10 +154,8 @@ export const HomeScreen = observer(({ navigation }: HomeScreenProps) => {
     );
   };
 
-  // Recomendaciones: filtramos las que aportan 0% (con inventario vacío
-  // no tiene sentido mostrar proyectos a los que no aportas nada) y luego
-  // mezclamos antes de ordenar para que los empates salgan en orden
-  // distinto cada vez. El botón shuffle fuerza la reorganización.
+  // Quitamos las recomendaciones al 0% y mezclamos antes de ordenar
+  // para que los empates por match no salgan siempre en el mismo orden.
   const recomendacionesOrdenadas = useMemo(() => {
     const conAporte = recomendacionVM.recomendaciones.filter(
       (r) => r.matchPercent > 0
@@ -183,10 +178,11 @@ export const HomeScreen = observer(({ navigation }: HomeScreenProps) => {
       );
   }, [proyectoEnProgresoVM.proyectosEnProgreso, proyectosEnCurso]);
 
-  // Nombre a mostrar en el saludo (prioriza el del perfil actualizado)
+  // Nombre del saludo: priorizamos el del perfil de Firestore sobre el
+  // displayName de Firebase Auth porque puede estar más actualizado.
   const nombreMostrar =
-    usuario?.nombre?.split(" ")[0] ||
-    auth.currentUser?.displayName?.split(" ")[0] ||
+    usuario?.nombre?.trim() ||
+    auth.currentUser?.displayName?.trim() ||
     "";
 
   const avatarUrl = usuario?.fotoPerfil || null;
@@ -428,7 +424,6 @@ const styles = StyleSheet.create({
   },
   list: {
     padding: SPACING.md,
-    paddingTop: SPACING.xl + 16,
     paddingBottom: SPACING.xl,
   },
 
@@ -587,35 +582,8 @@ const styles = StyleSheet.create({
   },
 
   // Sigue trabajando
-  continueCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: COLORS.white,
-    borderRadius: RADIUS.lg,
-    padding: SPACING.sm + 2,
-    marginBottom: SPACING.lg,
-    borderWidth: 1,
-    borderColor: COLORS.borderLight,
-    gap: SPACING.md,
-  },
-  continueImage: {
-    width: 64,
-    height: 64,
-    borderRadius: RADIUS.md,
-  },
-  continueEmojiBox: {
-    width: 64,
-    height: 64,
-    borderRadius: RADIUS.md,
-    backgroundColor: COLORS.bgWarm,
-    justifyContent: "center",
-    alignItems: "center",
-  },
   continueEmoji: {
     fontSize: 28,
-  },
-  continueTextBox: {
-    flex: 1,
   },
   continueLabel: {
     fontSize: 11,
@@ -629,12 +597,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: COLORS.text,
     marginTop: 2,
-  },
-  continueCTA: {
-    fontSize: 12,
-    color: COLORS.primary,
-    fontWeight: "700",
-    marginTop: SPACING.xs,
   },
   // Scroll horizontal de "Sigue trabajando"
   continueScroll: {

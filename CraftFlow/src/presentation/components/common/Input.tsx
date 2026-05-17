@@ -9,17 +9,29 @@ import {
 } from "react-native";
 import { COLORS, SPACING, RADIUS } from "../../../config/theme";
 
+/** Props del campo de entrada reutilizable */
 interface InputProps {
+  /** Etiqueta que se muestra encima del campo */
   label?: string;
+  /** Texto de marcador cuando está vacío */
   placeholder?: string;
+  /** Valor controlado del input */
   value: string;
+  /** Callback llamado en cada cambio de texto */
   onChangeText: (text: string) => void;
+  /** Oculta los caracteres (para contraseñas) */
   secureTextEntry?: boolean;
+  /** Tipo de teclado (numérico, email, etc.) */
   keyboardType?: KeyboardTypeOptions;
+  /** Mensaje de error a mostrar debajo del input */
   error?: string | null;
+  /** Permite varias líneas en el input */
   multiline?: boolean;
+  /** Número de líneas iniciales si es multilínea */
   numberOfLines?: number;
+  /** Estilos adicionales del contenedor */
   style?: ViewStyle;
+  /** Si es true muestra un asterisco rojo junto al label */
   required?: boolean;
 }
 

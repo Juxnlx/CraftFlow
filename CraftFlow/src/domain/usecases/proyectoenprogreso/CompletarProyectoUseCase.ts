@@ -1,10 +1,14 @@
 import { injectable, inject } from "inversify";
-import "reflect-metadata";
 import { TYPES } from "../../../core/types";
 import { ICompletarProyectoUseCase } from "../../interfaces/usecases/IProyectoEnProgresoUseCases";
 import { IProyectoEnProgresoRepository } from "../../interfaces/repositories/IProyectoEnProgresoRepository";
 import { ProyectoEnProgreso } from "../../entities/ProyectoEnProgreso";
 
+/**
+ * Caso de uso para cerrar un seguimiento como completado.
+ * Marca el estado como "completado", registra la fecha de finalización
+ * y guarda la imagen del resultado y la nota opcional del usuario.
+ */
 @injectable()
 export class CompletarProyectoUseCase implements ICompletarProyectoUseCase {
   private _repo: IProyectoEnProgresoRepository;
@@ -17,8 +21,8 @@ export class CompletarProyectoUseCase implements ICompletarProyectoUseCase {
   }
 
   /**
-   * Cierra un seguimiento marcándolo como completado.
-   * Cambia el estado, registra la fecha y guarda imagen y nota opcionales.
+   * Marca el seguimiento como completado y guarda la imagen final y la
+   * nota opcional del usuario.
    */
   async execute(
     idSeguimiento: string,

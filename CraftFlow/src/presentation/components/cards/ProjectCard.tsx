@@ -11,25 +11,31 @@ import {
 import { COLORS, SPACING, RADIUS } from "../../../config/theme";
 import { Proyecto } from "../../../domain/entities/Proyecto";
 
+/** Props de la tarjeta de proyecto */
 interface ProjectCardProps {
+  /** Datos del proyecto a mostrar */
   proyecto: Proyecto;
+  /** Nombre del autor a mostrar bajo el título */
   nombreAutor?: string;
+  /** Porcentaje de compatibilidad para el badge de match */
   matchPercent?: number;
+  /** True si el usuario tiene todos los materiales (badge verde) */
   canMake?: boolean;
+  /** Estado actual del favorito (corazón lleno o vacío) */
   esFavorito?: boolean;
+  /** Acción al pulsar la tarjeta */
   onPress: () => void;
+  /** Acción al pulsar el icono de favorito. Si no se pasa, el icono se oculta */
   onToggleFavorito?: () => void;
+  /** Si es true usa la variante reducida para el grid de Explorar */
   compact?: boolean;
 }
 
 /**
  * Tarjeta de proyecto reutilizable en feed, recomendaciones y búsqueda.
- * Modo normal: imagen grande, badges de match, info completa.
- * Modo compact: más pequeño para grid de 2 columnas en Explorar.
- *
- * Animaciones:
- * - Press feedback sutil (scale 1 → 0.97) cuando el usuario toca la tarjeta.
- * - Latido del corazón al marcar/desmarcar favorito (pulse de escala).
+ * Tiene un modo normal y un modo compact (más pequeño, sin badges) para
+ * el grid de 2 columnas. Anima un press feedback en toda la tarjeta y un
+ * latido en el corazón al cambiar el favorito.
  */
 export const ProjectCard: React.FC<ProjectCardProps> = ({
   proyecto,
@@ -46,6 +52,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
   // Escala para el latido del corazón de favorito
   const heartScale = useRef(new Animated.Value(1)).current;
 
+  /** Reduce ligeramente la tarjeta al iniciar el press. */
   const handlePressIn = () => {
     Animated.spring(cardScale, {
       toValue: 0.97,
@@ -55,6 +62,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
     }).start();
   };
 
+  /** Devuelve la tarjeta a su tamaño original al soltar. */
   const handlePressOut = () => {
     Animated.spring(cardScale, {
       toValue: 1,
@@ -64,6 +72,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
     }).start();
   };
 
+  /** Hace el "latido" en el corazón y propaga el toggle al padre. */
   const handleFavoritoPress = () => {
     // Pulse: escala rápida hacia arriba y rebote al valor original
     Animated.sequence([

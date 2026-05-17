@@ -1,5 +1,4 @@
 import { injectable } from "inversify";
-import "reflect-metadata";
 import {
   collection,
   doc,
@@ -15,24 +14,15 @@ import { IHerramientaRepository } from "../../domain/interfaces/repositories/IHe
 import { Herramienta } from "../../domain/entities/Herramienta";
 
 /**
- * Implementación del repositorio de herramientas usando Firebase Firestore.
+ * Implementación del repositorio de herramientas con Firebase Firestore.
  *
- * Trabaja con la colección "herramientas". Sigue el mismo patrón
- * que MaterialRepositoryFirebase, filtrando siempre por idUsuario
- * para que cada usuario solo acceda a sus propias herramientas.
- *
- * @example
- * const repo = container.get<IHerramientaRepository>(TYPES.IHerramientaRepository);
- * const herramientas = await repo.getHerramientasPorUsuario("user123");
+ * Mismo patrón que MaterialRepositoryFirebase: trabaja con la colección
+ * "herramientas" filtrando siempre por idUsuario para que cada usuario
+ * solo acceda a las suyas.
  */
 @injectable()
 export class HerramientaRepositoryFirebase implements IHerramientaRepository {
-  /**
-   * Obtiene todas las herramientas de un usuario.
-   *
-   * @param idUsuario - ID del usuario dueño de las herramientas
-   * @returns Promesa que resuelve a un array de herramientas del usuario
-   */
+  /** Devuelve todas las herramientas del inventario de un usuario. */
   async getHerramientasPorUsuario(
     idUsuario: string
   ): Promise<Herramienta[]> {
@@ -56,13 +46,7 @@ export class HerramientaRepositoryFirebase implements IHerramientaRepository {
     });
   }
 
-  /**
-   * Crea una nueva herramienta en Firestore.
-   * El ID se genera automáticamente por Firestore (addDoc).
-   *
-   * @param herramienta - Objeto herramienta a persistir
-   * @returns Promesa que resuelve al ID de la herramienta creada
-   */
+  /** Crea una nueva herramienta y devuelve el ID generado por Firestore. */
   async crearHerramienta(herramienta: Herramienta): Promise<string> {
     const docRef = await addDoc(collection(db, "herramientas"), {
       idUsuario: herramienta.idUsuario,
@@ -76,14 +60,7 @@ export class HerramientaRepositoryFirebase implements IHerramientaRepository {
     return docRef.id;
   }
 
-  /**
-   * Actualiza los datos de una herramienta existente.
-   * Solo se actualizan los campos incluidos en el Partial.
-   *
-   * @param idHerramienta - ID de la herramienta a actualizar
-   * @param herramienta - Objeto con los campos parciales a actualizar
-   * @returns Promesa que se resuelve al completar la actualización
-   */
+  /** Actualiza solo los campos definidos en el objeto parcial. */
   async actualizarHerramienta(
     idHerramienta: string,
     herramienta: Partial<Herramienta>
@@ -100,12 +77,7 @@ export class HerramientaRepositoryFirebase implements IHerramientaRepository {
     await updateDoc(docRef, datosActualizados);
   }
 
-  /**
-   * Elimina una herramienta de Firestore.
-   *
-   * @param idHerramienta - ID de la herramienta a eliminar
-   * @returns Promesa que se resuelve al eliminar la herramienta
-   */
+  /** Elimina la herramienta de Firestore. */
   async eliminarHerramienta(idHerramienta: string): Promise<void> {
     const docRef = doc(db, "herramientas", idHerramienta);
     await deleteDoc(docRef);

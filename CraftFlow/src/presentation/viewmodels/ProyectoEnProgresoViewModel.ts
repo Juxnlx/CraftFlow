@@ -17,16 +17,8 @@ import {
 
 /**
  * ViewModel que gestiona el seguimiento de proyectos en realización.
- *
- * Centraliza:
- * - El proyecto que el usuario está haciendo ahora (proyectoActivo).
- * - El cronómetro que mide el tiempo invertido en la sesión actual.
- * - Los proyectos completados (para mostrar en el perfil).
- *
- * El cronómetro se gestiona aquí (en lugar de en la pantalla) para que
- * persista al cambiar de pestaña o pausar y reanudar dentro de la app.
- * El "tiempoActual" expuesto suma el tiempo acumulado de sesiones previas
- * más el tiempo de la sesión activa, ambos en segundos.
+ * Mantiene el proyecto activo, los completados y los que están en curso,
+ * y persiste el progreso (pasos, fotos y tiempos) en Firestore.
  */
 export class ProyectoEnProgresoViewModel {
   /** Seguimiento que el usuario está realizando ahora (null si ninguno) */
@@ -38,14 +30,17 @@ export class ProyectoEnProgresoViewModel {
   /** Seguimientos en curso del usuario (Home "Sigue trabajando" y perfil "En proceso") */
   proyectosEnProgreso: ProyectoEnProgreso[] = [];
 
+  /** Indica si se está cargando un seguimiento o lista desde Firestore */
   isLoading: boolean = false;
+  /** Indica si se está persistiendo un cambio (iniciar, completar, etc.) */
   isSaving: boolean = false;
+  /** Mensaje de error a mostrar en la UI, o null si no hay */
   mensajeError: string | null = null;
 
   /**
-   * Suma de los tiempos opcionales registrados por paso, en segundos.
-   * Si el usuario no rellena tiempos, vale 0. Si datos antiguos solo tienen
-   * `tiempoInvertidoSegundos` global, se usa ese como fallback.
+   * Suma de los tiempos registrados por paso, en segundos. Si no hay
+   * tiempos por paso, devuelve el campo global `tiempoInvertidoSegundos`
+   * como respaldo para datos antiguos.
    */
   get tiempoTotalSegundos(): number {
     if (!this.proyectoActivo) return 0;
@@ -57,14 +52,22 @@ export class ProyectoEnProgresoViewModel {
     return this.proyectoActivo.tiempoInvertidoSegundos ?? 0;
   }
 
+  /** Caso de uso para iniciar (o recuperar) un seguimiento */
   private _iniciarUseCase: IIniciarProyectoUseCase;
+  /** Caso de uso para obtener el seguimiento activo de un proyecto */
   private _getEnProgresoUseCase: IGetProyectoEnProgresoUseCase;
+  /** Caso de uso para actualizar pasos, tiempos o fotos del seguimiento */
   private _actualizarUseCase: IActualizarProgresoUseCase;
+  /** Caso de uso para marcar un seguimiento como completado */
   private _completarUseCase: ICompletarProyectoUseCase;
+  /** Caso de uso para obtener los proyectos terminados del usuario */
   private _getCompletadosUseCase: IGetProyectosCompletadosUseCase;
+  /** Caso de uso para obtener los seguimientos en curso del usuario */
   private _getMisEnProgresoUseCase: IGetMisProyectosEnProgresoUseCase;
+  /** Caso de uso para abandonar un seguimiento (lo elimina) */
   private _abandonarUseCase: IAbandonarProyectoUseCase;
 
+  /** Activa MobX y resuelve los casos de uso desde el contenedor de DI. */
   constructor() {
     makeAutoObservable(this);
     this._iniciarUseCase = container.get<IIniciarProyectoUseCase>(
@@ -126,14 +129,13 @@ export class ProyectoEnProgresoViewModel {
         this.proyectosEnProgreso = lista;
       });
     } catch {
-      // Silencioso: si falla, simplemente no se muestran
+      // Si falla la carga, dejamos la lista vacía sin notificar al usuario
     }
   }
 
   /**
    * Carga el seguimiento activo del usuario sobre un proyecto, si existe.
-   * Si no existe, deja proyectoActivo en null. Útil al entrar al detalle
-   * de un proyecto para saber si el usuario ya lo había empezado.
+   * Si no lo había empezado deja `proyectoActivo` a null.
    */
   async cargarSeguimiento(
     idUsuario: string,
@@ -236,11 +238,8 @@ export class ProyectoEnProgresoViewModel {
 
   /**
    * Marca un paso como completado o no completado y opcionalmente
-   * añade/cambia/quita la foto de progreso. Persiste el cambio inmediatamente.
-   *
-   * @param fotoProgreso - undefined: no toca la foto existente.
-   *                       null: la elimina.
-   *                       string: la sustituye por la nueva URL.
+   * actualiza la foto de progreso. Persiste el cambio inmediatamente.
+   * @param fotoProgreso - undefined deja la actual, null la elimina, string la sustituye
    */
   async marcarPaso(
     numeroOrden: number,
@@ -261,9 +260,9 @@ export class ProyectoEnProgresoViewModel {
           : p
     );
 
-    // Optimista: actualizar UI primero, luego persistir.
-    // Reasignamos la referencia con una nueva instancia para que MobX
-    // detecte el cambio (la entidad en sí no es observable).
+    // Actualización optimista: cambiamos el VM primero y luego persistimos.
+    // Hace falta una nueva instancia porque la entidad no es observable
+    // y MobX no detecta mutaciones internas.
     const idActivo = this.proyectoActivo.id;
     runInAction(() => {
       if (this.proyectoActivo) {
@@ -297,11 +296,9 @@ export class ProyectoEnProgresoViewModel {
   }
 
   /**
-   * Devuelve una nueva instancia de ProyectoEnProgreso con los pasos cambiados.
-   * Es necesario porque la entidad NO es observable internamente: si solo
-   * mutamos `proyectoActivo.pasosCompletados`, MobX no detecta el cambio y
-   * la UI se queda con datos obsoletos. Reasignar la referencia del VM sí
-   * dispara re-render.
+   * Devuelve una nueva instancia con los pasos sustituidos. Reasignar
+   * la referencia es lo que dispara el re-render de MobX, ya que la
+   * entidad no es observable internamente.
    */
   private _conPasos(
     actual: ProyectoEnProgreso,
@@ -337,9 +334,8 @@ export class ProyectoEnProgresoViewModel {
     });
 
     try {
-      // Persistimos el total (suma de tiempos por paso) en el campo legacy
-      // tiempoInvertidoSegundos para que las pantallas que lo lean sigan
-      // funcionando aunque no se haya tocado el cronómetro automático.
+      // Volcamos la suma de tiempos en el campo global para que las
+      // pantallas antiguas que lo leen sigan funcionando.
       await this._actualizarUseCase.execute(this.proyectoActivo.id, {
         tiempoInvertidoSegundos: this.tiempoTotalSegundos,
       });
@@ -373,7 +369,7 @@ export class ProyectoEnProgresoViewModel {
         this.proyectosCompletados = completados;
       });
     } catch {
-      // Silencioso: si falla, simplemente no se muestran los completados
+      // Si falla la carga, dejamos la lista vacía sin notificar al usuario
     }
   }
 }

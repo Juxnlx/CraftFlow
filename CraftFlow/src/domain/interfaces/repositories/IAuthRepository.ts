@@ -1,5 +1,10 @@
 import { Usuario } from "../../entities/Usuario";
 
+/**
+ * Contrato para las operaciones de autenticación.
+ * Lo implementa la capa de datos contra Firebase Authentication
+ * (login, registro, logout y reset de contraseña).
+ */
 export interface IAuthRepository {
   /**
    * Inicia sesión con email y contraseña.
@@ -10,10 +15,10 @@ export interface IAuthRepository {
   login(email: string, password: string): Promise<Usuario>;
 
   /**
-   * Registra un nuevo usuario.
+   * Registra un nuevo usuario en la aplicación.
    * @param email - Correo electrónico del usuario
-   * @param password - Contraseña del usuario
-   * @param nombre - Nombre de visualización
+   * @param password - Contraseña elegida
+   * @param nombre - Nombre visible en la aplicación
    * @returns Promesa que resuelve al usuario registrado
    */
   register(email: string, password: string, nombre: string): Promise<Usuario>;
@@ -25,15 +30,9 @@ export interface IAuthRepository {
   logout(): Promise<void>;
 
   /**
-   * Envía un correo para restablecer la contraseña.
-   * @param email - Correo electrónico del usuario
+   * Envía un correo para restablecer la contraseña del usuario.
+   * @param email - Correo electrónico al que enviar el enlace
    * @returns Promesa que se resuelve al enviar el correo
    */
   resetPassword(email: string): Promise<void>;
-
-  /**
-   * Obtiene el usuario actual autenticado.
-   * @returns Promesa que resuelve al usuario actual o null si no hay sesión
-   */
-  getCurrentUser(): Promise<Usuario | null>;
 }

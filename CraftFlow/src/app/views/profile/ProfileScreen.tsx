@@ -6,9 +6,9 @@ import {
   TouchableOpacity,
   Image,
   StyleSheet,
-  SafeAreaView,
   Alert,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { observer } from "mobx-react-lite";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useFocusEffect } from "@react-navigation/native";
@@ -28,15 +28,18 @@ import { Proyecto } from "../../../domain/entities/Proyecto";
 import { ProyectoEnProgreso } from "../../../domain/entities/ProyectoEnProgreso";
 import { COLORS, SPACING, RADIUS } from "../../../config/theme";
 
+/** Props inyectadas por React Navigation a la pantalla de perfil */
 type ProfileScreenProps = {
   navigation: NativeStackNavigationProp<ProfileStackParamList, "ProfileMain">;
 };
 
+/** Identificador de la pestaña activa dentro del perfil */
 type TabKey = "mios" | "enProceso" | "terminados";
 
 /**
- * Pantalla de perfil del usuario.
- * Tabs: Mis proyectos (creados por el usuario) · En proceso · Terminados.
+ * Pantalla de perfil del usuario con tres pestañas: proyectos creados,
+ * proyectos en proceso y proyectos terminados. Incluye también stats
+ * básicas y el botón de cerrar sesión.
  */
 export const ProfileScreen = observer(({ navigation }: ProfileScreenProps) => {
   const userId = auth.currentUser?.uid || "";
@@ -113,6 +116,7 @@ export const ProfileScreen = observer(({ navigation }: ProfileScreenProps) => {
     [proyectoEnProgresoVM.proyectosCompletados, proyectosCache]
   );
 
+  /** Pide confirmación y abandona un seguimiento en curso. */
   const handleAbandonarSeguimiento = (idSeguimiento: string, nombre: string) => {
     Alert.alert(
       "Abandonar proyecto",
@@ -128,6 +132,7 @@ export const ProfileScreen = observer(({ navigation }: ProfileScreenProps) => {
     );
   };
 
+  /** Pide confirmación y elimina un proyecto del usuario (borrado lógico). */
   const handleEliminarProyecto = (id: string, nombre: string) => {
     Alert.alert(
       "Eliminar proyecto",
@@ -143,6 +148,7 @@ export const ProfileScreen = observer(({ navigation }: ProfileScreenProps) => {
     );
   };
 
+  /** Pide confirmación y cierra la sesión del usuario. */
   const handleLogout = () => {
     Alert.alert("Cerrar sesión", "¿Seguro que quieres cerrar sesión?", [
       { text: "Cancelar", style: "cancel" },
@@ -184,6 +190,7 @@ export const ProfileScreen = observer(({ navigation }: ProfileScreenProps) => {
     );
   };
 
+  /** Renderiza un proyecto creado por el usuario (tab "Mis proyectos"). */
   const renderMioItem = (item: Proyecto, index: number) => (
     <FadeInItem index={index}>
       <TouchableOpacity
@@ -241,6 +248,7 @@ export const ProfileScreen = observer(({ navigation }: ProfileScreenProps) => {
     </FadeInItem>
   );
 
+  /** Renderiza un proyecto en curso con su barra de progreso. */
   const renderEnProcesoItem = (
     seguimiento: ProyectoEnProgreso,
     proyecto: Proyecto,
@@ -290,6 +298,7 @@ export const ProfileScreen = observer(({ navigation }: ProfileScreenProps) => {
     );
   };
 
+  /** Renderiza un proyecto terminado con la foto del resultado y la fecha. */
   const renderTerminadoItem = (
     seguimiento: ProyectoEnProgreso,
     proyecto: Proyecto,
@@ -522,7 +531,6 @@ const styles = StyleSheet.create({
   profileHeader: {
     alignItems: "center",
     paddingVertical: SPACING.lg,
-    paddingTop: SPACING.xl + 16,
   },
   avatar: {
     width: 96,

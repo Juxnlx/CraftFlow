@@ -8,9 +8,9 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
   RefreshControl,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { observer } from "mobx-react-lite";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { ExploreStackParamList } from "../../../presentation/navigation/MainNavigator";
@@ -21,14 +21,14 @@ import { LoadingSpinner } from "../../../presentation/components/common/LoadingS
 import { FadeInItem } from "../../../presentation/components/common/FadeInItem";
 import { COLORS, SPACING, RADIUS } from "../../../config/theme";
 
+/** Props inyectadas por React Navigation a la pantalla de Explorar */
 type ExploreScreenProps = {
   navigation: NativeStackNavigationProp<ExploreStackParamList, "ExploreMain">;
 };
 
 /**
- * Filtros rápidos por categoría. El `emoji` se muestra junto al label para
- * que sea más reconocible a simple vista. El `match` se usa al filtrar los
- * proyectos comparando contra las etiquetas de cada proyecto.
+ * Filtros rápidos por categoría. El `emoji` acompaña al label y el `match`
+ * es lo que se compara (en minúsculas) contra las etiquetas del proyecto.
  */
 const FILTROS: { key: string; label: string; emoji: string; match: string }[] = [
   { key: "Todos", label: "Todos", emoji: "✨", match: "" },
@@ -39,13 +39,9 @@ const FILTROS: { key: string; label: string; emoji: string; match: string }[] = 
   { key: "Papel", label: "Papel", emoji: "📄", match: "papel" },
 ];
 
-/**
- * Pantalla de explorar con búsqueda y filtros por categoría.
- * Muestra proyectos públicos en grid de 2 columnas.
- */
-// Mezcla un array sin mutar el original (Fisher-Yates).
-// Se usa para que la lista de Explorar no aparezca siempre en el mismo orden
-// y los proyectos antiguos tengan oportunidad de salir arriba.
+// Mezcla un array sin mutar el original (Fisher-Yates). Lo usamos
+// para que Explorar no muestre siempre los proyectos en el mismo orden
+// y los antiguos tengan oportunidad de aparecer arriba.
 function mezclar<T>(arr: T[]): T[] {
   const copia = [...arr];
   for (let i = copia.length - 1; i > 0; i--) {
@@ -55,6 +51,10 @@ function mezclar<T>(arr: T[]): T[] {
   return copia;
 }
 
+/**
+ * Pantalla de Explorar con búsqueda y filtros por categoría. Muestra los
+ * proyectos públicos (excluyendo los propios) en un grid de 2 columnas.
+ */
 export const ExploreScreen = observer(({ navigation }: ExploreScreenProps) => {
   const [busqueda, setBusqueda] = useState("");
   const [filtroActivo, setFiltroActivo] = useState("Todos");
@@ -88,6 +88,7 @@ export const ExploreScreen = observer(({ navigation }: ExploreScreenProps) => {
     }, [])
   );
 
+  /** Actualiza el texto local y dispara la búsqueda en el ViewModel. */
   const handleBuscar = (texto: string) => {
     setBusqueda(texto);
     proyectoVM.buscarProyectos(texto);
@@ -263,7 +264,7 @@ const styles = StyleSheet.create({
   // Cabecera
   header: {
     paddingHorizontal: SPACING.md,
-    paddingTop: SPACING.xl + 16,
+    paddingTop: SPACING.md,
   },
   title: {
     fontSize: 26,

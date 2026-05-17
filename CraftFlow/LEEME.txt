@@ -1,0 +1,69 @@
+CraftFlow
+
+CraftFlow es una app móvil para gestionar tu inventario de materiales y herramientas
+de manualidades y recibir recomendaciones de proyectos según lo que tienes en casa.
+
+
+Requisitos previos
+
+- Node.js 20 o superior (https://nodejs.org).
+- La app Expo Go instalada en el móvil (Android o iOS) para probar la app,
+  o un emulador de Android Studio / simulador de iOS.
+- No hace falta instalar Expo de forma global: ya viene como dependencia
+  del proyecto y se ejecuta con npx.
+- Cuenta de Firebase: ya está configurada en el proyecto, no hay que tocar nada.
+
+
+Cómo arrancar el proyecto
+
+1. Descomprime el .zip (o clona el repositorio) y entra en la carpeta del proyecto
+   desde una terminal.
+2. Instala las dependencias:
+       npm install
+3. Arranca el servidor de desarrollo de Expo:
+       npx expo start
+4. Escanea el código QR que aparece en la terminal con la app Expo Go,
+   o pulsa "a" para abrir el emulador de Android, o "i" para el simulador de iOS.
+
+Si el móvil y el ordenador no están en la misma red Wi-Fi, o el QR no conecta,
+arranca con tunnel:
+       npx expo start --tunnel
+
+
+Credenciales de prueba
+
+Hay dos cuentas ya creadas con datos distintos para que se pueda ver cómo
+cambian las recomendaciones del feed según el inventario de cada una.
+
+Cuenta 1 (inventario de crochet):
+    Email:       craftflow.test@gmail.com
+    Contraseña:  Test1234
+
+Cuenta 2 (inventario de cerámica y pintura):
+    Email:       craftflow.test2@gmail.com
+    Contraseña:  Test1234
+
+Cada cuenta tiene sus propios materiales, herramientas y un par de proyectos
+publicados. Al cambiar entre una y otra, el feed muestra recomendaciones
+distintas y los proyectos creados por una cuenta aparecen en la otra cuando
+hay materiales compatibles.
+
+También se puede registrar una cuenta nueva desde la pantalla de registro
+para probar el flujo completo.
+
+
+Notas importantes
+
+- El proyecto usa Firebase (Auth + Firestore) y Cloudinary para las imágenes.
+  Ambas cosas ya están configuradas en el código, no hace falta crear cuentas
+  ni añadir claves para que funcione.
+- El archivo .env con las credenciales de Cloudinary ya viene incluido en el
+  proyecto. Si por algún motivo no está, hay un .env.example en la raíz que
+  sirve como plantilla.
+- No hay base de datos local ni scripts SQL: todos los datos se guardan en
+  Firestore, así que no tienes que importar nada.
+- Las imágenes de materiales, herramientas y proyectos se sirven desde Cloudinary.
+
+
+Si algo falla al arrancar, normalmente se soluciona borrando la carpeta
+node_modules y volviendo a hacer npm install.

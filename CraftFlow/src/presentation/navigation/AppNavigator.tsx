@@ -8,25 +8,20 @@ import { LoadingSpinner } from "../components/common/LoadingSpinner";
 import { authVM } from "../viewmodels";
 
 /**
- * Navegador raíz de la aplicación.
- * Escucha onAuthStateChanged de Firebase para decidir si mostrar
- * el flujo de autenticación o la app principal.
- *
- * Estados:
- * - null: cargando (splash screen con logo)
- * - false: sin sesión → AuthNavigator
- * - true: con sesión → MainNavigator
+ * Navegador raíz de la app. Escucha el estado de sesión de Firebase y
+ * decide si mostrar el flujo de autenticación o la app principal. Mientras
+ * se resuelve la sesión muestra el splash con el logo.
  */
 export const AppNavigator: React.FC = () => {
+  /** null mientras se comprueba la sesión, true/false una vez resuelta */
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        // Actualizar el ViewModel con los datos básicos del usuario
-        // El documento completo se carga cuando se necesita
         setIsLoggedIn(true);
       } else {
+        // Si la sesión se cierra, limpiamos el usuario del ViewModel
         setIsLoggedIn(false);
         authVM.usuario = null;
       }

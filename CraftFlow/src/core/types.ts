@@ -1,16 +1,7 @@
 /**
- * Símbolos de Inversify para inyección de dependencias.
- *
- * Cada símbolo actúa como identificador único para que el contenedor
- * de Inversify sepa qué implementación concreta inyectar cuando un
- * use case o ViewModel solicita una interfaz.
- *
- * @example
- * // En un use case:
- * constructor(@inject(TYPES.IAuthRepository) authRepo: IAuthRepository)
- *
- * // En el contenedor (container.ts):
- * container.bind<IAuthRepository>(TYPES.IAuthRepository).to(AuthRepositoryFirebase)
+ * Símbolos identificativos de Inversify para la inyección de dependencias.
+ * Cada clave es un Symbol único que asocia una interfaz del dominio con su
+ * implementación concreta en el contenedor de DI.
  */
 export const TYPES = {
   // Repositories

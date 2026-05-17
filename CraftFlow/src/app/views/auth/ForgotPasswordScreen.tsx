@@ -8,21 +8,25 @@ import { Button } from "../../../presentation/components/common/Button";
 import { Input } from "../../../presentation/components/common/Input";
 import { COLORS, SPACING, RADIUS } from "../../../config/theme";
 
+/** Props inyectadas por React Navigation a la pantalla de recuperación */
 type ForgotPasswordScreenProps = {
   navigation: NativeStackNavigationProp<AuthStackParamList, "ForgotPassword">;
 };
 
 /**
- * Pantalla de recuperación de contraseña.
- * Dos estados: formulario de email y confirmación de envío.
+ * Pantalla de recuperación de contraseña. Tiene dos estados: formulario
+ * para introducir el email y pantalla de confirmación cuando ya se ha
+ * enviado el correo.
  */
 export const ForgotPasswordScreen = observer(({ navigation }: ForgotPasswordScreenProps) => {
   const [email, setEmail] = useState("");
 
+  /** Envía el correo de recuperación al email introducido. */
   const handleReset = async () => {
     await authVM.resetPassword(email);
   };
 
+  /** Resetea el estado del VM y vuelve al login. */
   const handleGoBack = () => {
     authVM.resetPasswordSent = false;
     authVM.clearError();

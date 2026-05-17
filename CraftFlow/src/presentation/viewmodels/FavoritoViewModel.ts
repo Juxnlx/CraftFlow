@@ -1,8 +1,10 @@
 import { makeAutoObservable, runInAction } from "mobx";
 import { container } from "../../core/container";
 import { TYPES } from "../../core/types";
-import { IGetFavoritosUseCase } from "../../domain/interfaces/usecases/IFavoritoUseCases";
-import { IToggleFavoritoUseCase } from "../../domain/interfaces/usecases/IFavoritoUseCases";
+import {
+  IGetFavoritosUseCase,
+  IToggleFavoritoUseCase,
+} from "../../domain/interfaces/usecases/IFavoritoUseCases";
 import { Favorito } from "../../domain/entities/Favorito";
 
 /**
@@ -10,14 +12,21 @@ import { Favorito } from "../../domain/entities/Favorito";
  * Mantiene un Set de IDs para comprobación rápida sin consultar Firebase.
  */
 export class FavoritoViewModel {
+  /** Lista completa de favoritos del usuario actual */
   favoritos: Favorito[] = [];
+  /** IDs de proyectos guardados, para comprobar pertenencia en O(1) */
   favoritosIds: Set<string> = new Set();
+  /** Indica si hay una operación de carga en curso */
   isLoading: boolean = false;
 
+  /** UID del último usuario cargado, usado para recargar tras un toggle */
   private _idUsuarioActual: string = "";
+  /** Caso de uso para obtener los favoritos del usuario */
   private _getFavoritosUseCase: IGetFavoritosUseCase;
+  /** Caso de uso para guardar/quitar favoritos */
   private _toggleFavoritoUseCase: IToggleFavoritoUseCase;
 
+  /** Activa MobX y resuelve los casos de uso desde el contenedor de DI. */
   constructor() {
     makeAutoObservable(this);
     this._getFavoritosUseCase = container.get<IGetFavoritosUseCase>(TYPES.IGetFavoritosUseCase);

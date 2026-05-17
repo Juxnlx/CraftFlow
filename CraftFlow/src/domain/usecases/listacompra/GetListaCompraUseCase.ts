@@ -1,5 +1,4 @@
 import { injectable, inject } from "inversify";
-import "reflect-metadata";
 import { TYPES } from "../../../core/types";
 import { IGetListaCompraUseCase } from "../../interfaces/usecases/IListaCompraUseCases";
 import { IFavoritoRepository } from "../../interfaces/repositories/IFavoritoRepository";
@@ -9,27 +8,16 @@ import { IHerramientaRepository } from "../../interfaces/repositories/IHerramien
 import { ItemCompra } from "../../entities/ItemCompra";
 import { Material } from "../../entities/Material";
 import { Proyecto } from "../../entities/Proyecto";
+import { Herramienta } from "../../entities/Herramienta";
 import { MaterialMatcher } from "../../services/MaterialMatcher";
 
 /**
- * Caso de uso que genera la lista de la compra del usuario.
- *
- * Flujo:
- * 1. Obtiene proyectos favoritos y el inventario del usuario.
- * 2. Para cada proyecto favorito, identifica los materiales y herramientas
- *    que el usuario NO tiene (usando el mismo matching por palabras del
- *    motor de recomendaciones).
- * 3. Agrupa ítems repetidos acumulando los proyectos que los necesitan.
- * 4. Sugiere una URL de compra si el usuario ya tiene algún material de
- *    la misma categoría con url_compra rellena.
- * 5. Devuelve la lista ordenada (materiales primero, luego herramientas).
- *
- * @example
- * const lista = await getListaCompraUseCase.execute("user123");
- * // [
- * //   { nombre: "Hilo verde", esHerramienta: false, ... },
- * //   { nombre: "Aguja 3.5mm", esHerramienta: true, ... }
- * // ]
+ * Caso de uso que genera la lista de la compra del usuario a partir de
+ * sus proyectos favoritos y su inventario. Reutiliza el mismo matching
+ * que el motor de recomendaciones para que Home y la lista coincidan,
+ * agrupa ítems repetidos acumulando los proyectos que los necesitan y
+ * sugiere una URL de compra cuando el usuario ya guardó otra de la misma
+ * categoría. Devuelve materiales primero y luego herramientas.
  */
 @injectable()
 export class GetListaCompraUseCase implements IGetListaCompraUseCase {
@@ -50,8 +38,12 @@ export class GetListaCompraUseCase implements IGetListaCompraUseCase {
     this._herramientaRepository = herramientaRepository;
   }
 
+  /**
+   * Calcula la lista de la compra del usuario a partir de sus favoritos
+   * y de su inventario actual.
+   */
   async execute(idUsuario: string): Promise<ItemCompra[]> {
-    // 1. Cargar favoritos + inventario en paralelo
+    // Cargar favoritos e inventario en paralelo
     const [favoritos, misMateriales, misHerramientas] = await Promise.all([
       this._favoritoRepository.getFavoritosPorUsuario(idUsuario),
       this._materialRepository.getMaterialesPorUsuario(idUsuario),
@@ -60,20 +52,21 @@ export class GetListaCompraUseCase implements IGetListaCompraUseCase {
 
     if (favoritos.length === 0) return [];
 
-    // 2. Cargar los proyectos completos de los favoritos (ignora los borrados)
+    // Cargar los proyectos completos asociados a los favoritos
+    // (ignoramos los que ya hayan sido eliminados por su autor)
     const proyectos: Proyecto[] = [];
     for (const fav of favoritos) {
       try {
         const proyecto = await this._proyectoRepository.getProyectoPorId(fav.idProyecto);
         proyectos.push(proyecto);
       } catch {
-        // Proyecto eliminado, se ignora
+        // Proyecto eliminado: se omite
       }
     }
 
-    // 3. Construir el mapa agregado de ítems que faltan.
-    // Clave = "m:nombre|categoria" para material, "h:nombre|tipo" para herramienta.
-    // Esto evita duplicados y permite acumular los proyectos que lo necesitan.
+    // Mapa agregado de ítems que faltan. La clave evita duplicados y
+    // permite acumular los proyectos que necesitan el mismo material o
+    // herramienta.
     const itemsMap = new Map<string, ItemCompra>();
 
     for (const proyecto of proyectos) {
@@ -117,7 +110,8 @@ export class GetListaCompraUseCase implements IGetListaCompraUseCase {
       }
     }
 
-    // 5. Ordenar: materiales primero (agrupados por categoría), luego herramientas
+    // Ordenar: primero materiales (agrupados por categoría) y después
+    // herramientas, ambos alfabéticamente dentro de su grupo.
     const lista = Array.from(itemsMap.values());
     lista.sort((a, b) => {
       if (a.esHerramienta !== b.esHerramienta) {
@@ -133,7 +127,8 @@ export class GetListaCompraUseCase implements IGetListaCompraUseCase {
   }
 
   /**
-   * Añade un ítem al mapa o, si ya existe, acumula el proyecto que lo necesita.
+   * Añade un ítem al mapa o, si ya existe la misma clave, acumula el
+   * nombre del proyecto que lo necesita evitando duplicados.
    */
   private _acumularItem(
     mapa: Map<string, ItemCompra>,
@@ -142,7 +137,6 @@ export class GetListaCompraUseCase implements IGetListaCompraUseCase {
   ): void {
     const existente = mapa.get(clave);
     if (existente) {
-      // Evitar repetir el mismo nombre de proyecto en el array
       for (const nombreProy of item.proyectosQueLoNecesitan) {
         if (!existente.proyectosQueLoNecesitan.includes(nombreProy)) {
           existente.proyectosQueLoNecesitan.push(nombreProy);
@@ -154,10 +148,9 @@ export class GetListaCompraUseCase implements IGetListaCompraUseCase {
   }
 
   /**
-   * Busca una URL de compra en los materiales que el usuario ya tiene
-   * de la misma categoría. Permite a la lista de la compra aprovechar
-   * dónde compró antes el usuario (ej: si ya tiene lana con url, la
-   * lista sugiere esa misma tienda para otra lana que le falte).
+   * Sugiere una URL de compra reutilizando alguna de las que el usuario
+   * ya guardó para un material de la misma categoría: si ya compró su
+   * lana en una tienda, sugerimos esa misma tienda para otra lana que le falte.
    */
   private _buscarUrlSugerida(categoria: string, misMateriales: Material[]): string | null {
     const cat = this._normalizarTexto(categoria);
@@ -168,20 +161,20 @@ export class GetListaCompraUseCase implements IGetListaCompraUseCase {
   }
 
   /**
-   * Equivalente para herramientas: busca una URL guardada en una herramienta
-   * existente del mismo tipo. Si no hay coincidencia exacta, cae a una con
-   * tipo similar por palabras (mismo matching que usa el motor) para no
-   * dejarse sin sugerencia entre tipos sinónimos.
+   * Equivalente al método anterior pero para herramientas. Si no
+   * encuentra coincidencia exacta de tipo, prueba con coincidencia por
+   * palabras para no perder sugerencias entre tipos similares.
    */
   private _buscarUrlSugeridaHerramienta(
     tipo: string,
-    misHerramientas: import("../../entities/Herramienta").Herramienta[]
+    misHerramientas: Herramienta[]
   ): string | null {
     const tipoNormalizado = this._normalizarTexto(tipo);
     const exacta = misHerramientas.find(
       (h) => this._normalizarTexto(h.tipo) === tipoNormalizado && h.urlCompra
     );
     if (exacta) return exacta.urlCompra;
+
     const aproximada = misHerramientas.find(
       (h) =>
         h.urlCompra &&
@@ -190,19 +183,15 @@ export class GetListaCompraUseCase implements IGetListaCompraUseCase {
     return aproximada?.urlCompra || null;
   }
 
-  /**
-   * Normaliza un texto eliminando tildes y pasando a minúsculas.
-   * Se usa internamente para construir las claves de agregación del mapa.
-   */
+  /** Normaliza el texto (sin tildes, en minúsculas) para construir claves estables. */
   private _normalizarTexto(texto: string): string {
     return MaterialMatcher.normalizarTexto(texto);
   }
 
   /**
-   * Material compatible: misma lógica que el motor de recomendaciones,
-   * incluyendo el chequeo de cantidad. Si el usuario tiene el material
-   * pero NO cubre la cantidad pedida, se considera "no lo tiene" y
-   * se añade a la lista de la compra. Así Home y Lista coinciden.
+   * Comprueba si el usuario tiene un material compatible con el requerido.
+   * Si tiene el material pero no cubre la cantidad pedida, se considera
+   * que no lo tiene y se añade a la lista de la compra.
    */
   private _esMaterialCompatible(
     req: { nombre: string; categoria: string; cantidad: string | null },
@@ -212,14 +201,12 @@ export class GetListaCompraUseCase implements IGetListaCompraUseCase {
   }
 
   /**
-   * Herramienta compatible: misma lógica que el motor de recomendaciones,
-   * para que ambos vean lo mismo. Se envuelve en método de instancia para
-   * preservar el `this` interno del MaterialMatcher (la asignación directa
-   * lo rompía y lanzaba un error silencioso).
+   * Comprueba si el usuario tiene una herramienta compatible con la
+   * requerida (misma lógica de matching que el motor de recomendaciones).
    */
   private _esHerramientaCompatible(
     req: { nombre: string; tipo: string },
-    usuario: import("../../entities/Herramienta").Herramienta
+    usuario: Herramienta
   ): boolean {
     return MaterialMatcher.esHerramientaCompatible(req, usuario);
   }

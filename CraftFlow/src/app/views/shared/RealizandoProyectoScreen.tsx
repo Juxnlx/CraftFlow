@@ -7,9 +7,9 @@ import {
   Image,
   TextInput,
   StyleSheet,
-  SafeAreaView,
   Alert,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { observer } from "mobx-react-lite";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
@@ -24,12 +24,15 @@ import { IUploadImageUseCase } from "../../../domain/interfaces/usecases/IStorag
 import { LoadingSpinner } from "../../../presentation/components/common/LoadingSpinner";
 import { COLORS, SPACING, RADIUS } from "../../../config/theme";
 
+/** Props inyectadas por React Navigation a la pantalla de realización */
 type RealizandoProyectoScreenProps = {
   navigation: NativeStackNavigationProp<any>;
 };
 
+/** Unidades de tiempo soportadas en el selector por paso */
 type UnidadTiempo = "min" | "h" | "d";
 
+/** Factor para pasar de cada unidad a segundos */
 const FACTOR_SEGUNDOS: Record<UnidadTiempo, number> = {
   min: 60,
   h: 3600,
@@ -37,8 +40,8 @@ const FACTOR_SEGUNDOS: Record<UnidadTiempo, number> = {
 };
 
 /**
- * Descompone segundos en {valor, unidad} eligiendo la unidad más natural
- * (días si encaja exacto, después horas, si no minutos).
+ * Descompone los segundos guardados en {valor, unidad}, eligiendo la
+ * unidad más natural: días si encaja exacto, luego horas, si no minutos.
  */
 const descomponerTiempo = (
   segundos: number
@@ -84,14 +87,17 @@ export const RealizandoProyectoScreen = observer(
       totalPasos === 0 ? 0 : Math.round((completados / totalPasos) * 100);
     const todoHecho = totalPasos > 0 && completados === totalPasos;
 
+    /** Vuelve a la pantalla anterior sin cerrar el seguimiento. */
     const handleSalir = () => {
       navigation.goBack();
     };
 
+    /** Marca o desmarca un paso como completado. */
     const handleTogglePaso = (numeroOrden: number, completado: boolean) => {
       proyectoEnProgresoVM.marcarPaso(numeroOrden, !completado);
     };
 
+    /** Abre la galería, sube la imagen a Cloudinary y la asocia al paso. */
     const handleSubirFoto = async (numeroOrden: number) => {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ["images"],
@@ -125,6 +131,7 @@ export const RealizandoProyectoScreen = observer(
       }
     };
 
+    /** Salta a la pantalla de completar (foto de resultado, nota final, etc.). */
     const handleTerminar = () => {
       navigation.navigate("CompletarProyecto");
     };
@@ -398,7 +405,6 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.bg },
   scroll: {
     padding: SPACING.md,
-    paddingTop: SPACING.xl + 16,
     paddingBottom: SPACING.xl,
   },
 

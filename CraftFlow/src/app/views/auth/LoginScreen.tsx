@@ -17,22 +17,24 @@ import { Button } from "../../../presentation/components/common/Button";
 import { Input } from "../../../presentation/components/common/Input";
 import { COLORS, SPACING, RADIUS } from "../../../config/theme";
 
+/** Props inyectadas por React Navigation a la pantalla de login */
 type LoginScreenProps = {
   navigation: NativeStackNavigationProp<AuthStackParamList, "Login">;
 };
 
 /**
- * Pantalla de inicio de sesión.
- * Centrada verticalmente con logo, inputs y enlaces a registro y recuperación.
+ * Pantalla de inicio de sesión: logo, formulario y enlaces a registro
+ * y recuperación de contraseña.
  */
 export const LoginScreen = observer(({ navigation }: LoginScreenProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  /** Lanza el login; si tiene éxito, AppNavigator cambia de stack solo. */
   const handleLogin = async () => {
     const success = await authVM.login(email, password);
     if (success) {
-      // La navegación cambia automáticamente via onAuthStateChanged
+      // La navegación al MainNavigator la dispara onAuthStateChanged
     }
   };
 

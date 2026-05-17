@@ -3,21 +3,26 @@ import { View, Text, TouchableOpacity, StyleSheet, Linking } from "react-native"
 import { COLORS, SPACING, RADIUS } from "../../../config/theme";
 import { Herramienta } from "../../../domain/entities/Herramienta";
 
+/** Props de la tarjeta de herramienta */
 interface HerramientaCardProps {
+  /** Herramienta a mostrar en la tarjeta */
   herramienta: Herramienta;
+  /** Acción al pulsar el botón de editar */
   onEdit: () => void;
+  /** Acción al pulsar el botón de eliminar */
   onDelete: () => void;
 }
 
 /**
- * Tarjeta de herramienta en el inventario.
- * Muestra nombre, tipo, cantidad y propiedades específicas.
+ * Tarjeta de herramienta en el inventario. Muestra nombre, tipo,
+ * cantidad y las propiedades específicas (grosor, número, diámetro).
  */
 export const HerramientaCard: React.FC<HerramientaCardProps> = ({
   herramienta,
   onEdit,
   onDelete,
 }) => {
+  // Línea de detalles: tipo + las propiedades que vengan rellenas
   const detalles: string[] = [herramienta.tipo];
   const props = herramienta.propiedades;
   if (props.grosor) detalles.push(`${props.grosor}mm`);

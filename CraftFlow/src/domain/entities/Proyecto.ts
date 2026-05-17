@@ -1,130 +1,92 @@
 /** Visibilidad del proyecto en el feed */
 export type Visibilidad = "publico" | "privado";
 
-/** Nivel de dificultad del proyecto */
+/** Nivel de dificultad estimado por el creador */
 export type Dificultad = "facil" | "intermedio" | "avanzado";
 
-/**
- * Representa un paso del proceso de creación de un proyecto.
- * Cada paso tiene un orden, una descripción y opcionalmente una imagen.
- */
+/** Paso individual del proceso de creación de un proyecto */
 export interface PasoProyecto {
+  /** Posición del paso dentro del proyecto */
   numeroOrden: number;
+  /** Texto explicativo del paso */
   descripcion: string;
+  /** URL de la imagen ilustrativa, o null si no tiene */
   imagen: string | null;
 }
 
 /**
- * Describe un material necesario para realizar un proyecto.
+ * Material que requiere un proyecto.
  *
  * No es una referencia al inventario del usuario: es información
- * descriptiva que el creador del proyecto define libremente.
- * Así cualquiera puede crear un proyecto diciendo "necesitas hilo verde"
- * sin tener que tenerlo en su propio inventario.
+ * descriptiva que el creador define libremente, así cualquier persona
+ * puede publicar un proyecto sin necesidad de tener los materiales
+ * en su propio inventario.
  */
 export interface MaterialRequerido {
+  /** Nombre del material (texto libre) */
   nombre: string;
+  /** Categoría a la que pertenece (lana, pintura...) */
   categoria: string;
+  /** Cantidad sugerida (texto libre, p.ej. "80 metros") o null */
   cantidad: string | null;
 }
 
-/**
- * Describe una herramienta necesaria para realizar un proyecto.
- */
+/** Herramienta necesaria para realizar un proyecto */
 export interface HerramientaRequerida {
+  /** Nombre de la herramienta */
   nombre: string;
+  /** Tipo de herramienta (texto libre, p.ej. "Agujas de crochet") */
   tipo: string;
 }
 
 /**
- * Representa un proyecto creativo publicado por un usuario.
+ * Proyecto creativo publicado por un usuario.
  *
- * Contiene toda la información necesaria para:
- * - Mostrarlo en el feed general (Explorar)
- * - Mostrarlo en las recomendaciones (Para ti)
- * - Mostrar su detalle completo con pasos, materiales y herramientas
- * - Que el motor de recomendaciones calcule el % de match con el inventario
- *
- * Los materiales y herramientas se almacenan como arrays dentro del propio
- * documento en Firestore, no como colecciones separadas, porque siempre
- * se leen y escriben junto con el proyecto.
- *
- * @example
- * const proyecto = new Proyecto(
- *   "proy001",
- *   "user123",
- *   "Amigurumi Rana",
- *   "Rana tejida a crochet de 15cm",
- *   null,
- *   "publico",
- *   "intermedio",
- *   ["crochet", "amigurumi"],
- *   [{ nombre: "Hilo algodón verde", categoria: "lana", cantidad: "80 metros" }],
- *   [{ nombre: "Aguja crochet 3.5mm", tipo: "agujas_crochet" }],
- *   [{ numeroOrden: 1, descripcion: "Anillo mágico 6pb", imagen: null }]
- * );
+ * Materiales, herramientas y pasos se almacenan como arrays dentro
+ * del propio documento de Firestore (no como subcolecciones) porque
+ * siempre se leen y escriben junto con el proyecto.
  */
 export class Proyecto {
 
-  /** Identificador único del proyecto (generado por Firestore) */
+  /** Identificador único (generado por Firestore) */
   private _id: string;
 
-  /** ID del usuario que creó el proyecto */
+  /** UID del usuario que creó el proyecto */
   private _idUsuario: string;
 
   /** Nombre del proyecto */
   private _nombre: string;
 
-  /** Descripción detallada del proyecto */
+  /** Descripción larga del proyecto */
   private _descripcion: string;
 
-  /** URL de la imagen principal en Firebase Storage (null si no tiene) */
+  /** URL de la imagen principal, o null si no tiene */
   private _imagen: string | null;
 
-  /** Si el proyecto es visible para todos o solo para el creador */
+  /** Si es público (visible en el feed) o privado (solo el autor) */
   private _visibilidad: Visibilidad;
 
-  /** Nivel de dificultad estimado por el creador (null si no se especifica) */
+  /** Nivel de dificultad, o null si no se especifica */
   private _dificultad: Dificultad | null;
 
-  /** Etiquetas para categorizar y buscar el proyecto (ej: ["crochet", "amigurumi"]) */
+  /** Etiquetas para clasificar y buscar el proyecto */
   private _etiquetas: string[];
 
-  /** Lista de materiales necesarios para realizar el proyecto */
+  /** Materiales necesarios para realizarlo */
   private _materiales: MaterialRequerido[];
 
-  /** Lista de herramientas necesarias para realizar el proyecto */
+  /** Herramientas necesarias para realizarlo */
   private _herramientas: HerramientaRequerida[];
 
   /** Pasos ordenados del proceso de creación */
   private _pasos: PasoProyecto[];
 
-  /** Fecha en la que se creó el proyecto */
+  /** Fecha de publicación */
   private _fechaCreacion: Date;
 
-  /**
-   * Indica si el proyecto está activo.
-   * Permite ocultar proyectos sin eliminarlos de Firestore.
-   */
+  /** Permite ocultar el proyecto sin borrarlo (soft delete) */
   private _activo: boolean;
 
-  /**
-   * Crea una nueva instancia de Proyecto.
-   *
-   * @param id - ID generado por Firestore
-   * @param idUsuario - ID del usuario creador
-   * @param nombre - Nombre del proyecto
-   * @param descripcion - Descripción detallada
-   * @param imagen - URL de la imagen principal (opcional)
-   * @param visibilidad - Visibilidad del proyecto (por defecto: "publico")
-   * @param dificultad - Nivel de dificultad (opcional)
-   * @param etiquetas - Array de etiquetas (por defecto: vacío)
-   * @param materiales - Array de materiales requeridos (por defecto: vacío)
-   * @param herramientas - Array de herramientas requeridas (por defecto: vacío)
-   * @param pasos - Array de pasos del proceso (por defecto: vacío)
-   * @param fechaCreacion - Fecha de creación (por defecto: fecha actual)
-   * @param activo - Estado del proyecto (por defecto: true)
-   */
   constructor(
     id: string,
     idUsuario: string,
@@ -155,124 +117,53 @@ export class Proyecto {
     this._activo = activo;
   }
 
-  // GETTERS
+  // Getters
+  /** Devuelve el ID del proyecto */
+  get id(): string { return this._id; }
+  /** Devuelve el UID del autor */
+  get idUsuario(): string { return this._idUsuario; }
+  /** Devuelve el nombre del proyecto */
+  get nombre(): string { return this._nombre; }
+  /** Devuelve la descripción larga */
+  get descripcion(): string { return this._descripcion; }
+  /** Devuelve la URL de la imagen principal o null */
+  get imagen(): string | null { return this._imagen; }
+  /** Devuelve la visibilidad ("publico" o "privado") */
+  get visibilidad(): Visibilidad { return this._visibilidad; }
+  /** Devuelve la dificultad o null si no se especificó */
+  get dificultad(): Dificultad | null { return this._dificultad; }
+  /** Devuelve las etiquetas */
+  get etiquetas(): string[] { return this._etiquetas; }
+  /** Devuelve la lista de materiales requeridos */
+  get materiales(): MaterialRequerido[] { return this._materiales; }
+  /** Devuelve la lista de herramientas requeridas */
+  get herramientas(): HerramientaRequerida[] { return this._herramientas; }
+  /** Devuelve los pasos del proceso */
+  get pasos(): PasoProyecto[] { return this._pasos; }
+  /** Devuelve la fecha de publicación */
+  get fechaCreacion(): Date { return this._fechaCreacion; }
+  /** Indica si el proyecto sigue activo */
+  get activo(): boolean { return this._activo; }
 
-  /** @returns El ID del proyecto en Firestore */
-  get id(): string {
-    return this._id;
-  }
-
-  /** @returns El ID del usuario creador */
-  get idUsuario(): string {
-    return this._idUsuario;
-  }
-
-  /** @returns El nombre del proyecto */
-  get nombre(): string {
-    return this._nombre;
-  }
-
-  /** @returns La descripción detallada del proyecto */
-  get descripcion(): string {
-    return this._descripcion;
-  }
-
-  /** @returns La URL de la imagen principal, o null si no tiene */
-  get imagen(): string | null {
-    return this._imagen;
-  }
-
-  /** @returns La visibilidad del proyecto ("publico" o "privado") */
-  get visibilidad(): Visibilidad {
-    return this._visibilidad;
-  }
-
-  /** @returns El nivel de dificultad, o null si no se especificó */
-  get dificultad(): Dificultad | null {
-    return this._dificultad;
-  }
-
-  /** @returns Array de etiquetas del proyecto */
-  get etiquetas(): string[] {
-    return this._etiquetas;
-  }
-
-  /** @returns Array de materiales necesarios */
-  get materiales(): MaterialRequerido[] {
-    return this._materiales;
-  }
-
-  /** @returns Array de herramientas necesarias */
-  get herramientas(): HerramientaRequerida[] {
-    return this._herramientas;
-  }
-
-  /** @returns Array de pasos ordenados del proceso */
-  get pasos(): PasoProyecto[] {
-    return this._pasos;
-  }
-
-  /** @returns La fecha de creación del proyecto */
-  get fechaCreacion(): Date {
-    return this._fechaCreacion;
-  }
-
-  /** @returns true si el proyecto está activo */
-  get activo(): boolean {
-    return this._activo;
-  }
-
-  // SETTERS
-  // El id, idUsuario y fechaCreacion no tienen setter
-  // porque son inmutables una vez creado el proyecto.
-
-  /** @param value - Nuevo nombre del proyecto */
-  set nombre(value: string) {
-    this._nombre = value;
-  }
-
-  /** @param value - Nueva descripción del proyecto */
-  set descripcion(value: string) {
-    this._descripcion = value;
-  }
-
-  /** @param value - Nueva URL de imagen, o null para eliminarla */
-  set imagen(value: string | null) {
-    this._imagen = value;
-  }
-
-  /** @param value - Nueva visibilidad ("publico" o "privado") */
-  set visibilidad(value: Visibilidad) {
-    this._visibilidad = value;
-  }
-
-  /** @param value - Nueva dificultad, o null para no especificar */
-  set dificultad(value: Dificultad | null) {
-    this._dificultad = value;
-  }
-
-  /** @param value - Nuevas etiquetas del proyecto */
-  set etiquetas(value: string[]) {
-    this._etiquetas = value;
-  }
-
-  /** @param value - Nueva lista de materiales requeridos */
-  set materiales(value: MaterialRequerido[]) {
-    this._materiales = value;
-  }
-
-  /** @param value - Nueva lista de herramientas requeridas */
-  set herramientas(value: HerramientaRequerida[]) {
-    this._herramientas = value;
-  }
-
-  /** @param value - Nueva lista de pasos del proceso */
-  set pasos(value: PasoProyecto[]) {
-    this._pasos = value;
-  }
-
-  /** @param value - true para activar, false para ocultar */
-  set activo(value: boolean) {
-    this._activo = value;
-  }
+  // Setters: id, idUsuario y fechaCreacion son inmutables
+  /** Cambia el nombre del proyecto */
+  set nombre(value: string) { this._nombre = value; }
+  /** Cambia la descripción */
+  set descripcion(value: string) { this._descripcion = value; }
+  /** Cambia la imagen principal */
+  set imagen(value: string | null) { this._imagen = value; }
+  /** Cambia la visibilidad */
+  set visibilidad(value: Visibilidad) { this._visibilidad = value; }
+  /** Cambia la dificultad */
+  set dificultad(value: Dificultad | null) { this._dificultad = value; }
+  /** Sustituye las etiquetas */
+  set etiquetas(value: string[]) { this._etiquetas = value; }
+  /** Sustituye los materiales requeridos */
+  set materiales(value: MaterialRequerido[]) { this._materiales = value; }
+  /** Sustituye las herramientas requeridas */
+  set herramientas(value: HerramientaRequerida[]) { this._herramientas = value; }
+  /** Sustituye los pasos del proceso */
+  set pasos(value: PasoProyecto[]) { this._pasos = value; }
+  /** Activa o desactiva el proyecto */
+  set activo(value: boolean) { this._activo = value; }
 }

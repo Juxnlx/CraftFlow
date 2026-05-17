@@ -10,12 +10,17 @@ import { ProyectoRecomendado } from "../../domain/entities/ProyectoRecomendado";
  * con proyectos ordenados por porcentaje de compatibilidad.
  */
 export class RecomendacionViewModel {
+  /** Recomendaciones ordenadas por compatibilidad de mayor a menor */
   recomendaciones: ProyectoRecomendado[] = [];
+  /** Indica si se está calculando la lista de recomendaciones */
   isLoading: boolean = false;
+  /** Mensaje de error a mostrar en la UI, o null si no hay */
   error: string | null = null;
 
+  /** Caso de uso que calcula las recomendaciones del usuario */
   private _getRecomendacionesUseCase: IGetRecomendacionesUseCase;
 
+  /** Activa MobX y resuelve el caso de uso desde el contenedor de DI. */
   constructor() {
     makeAutoObservable(this);
     this._getRecomendacionesUseCase = container.get<IGetRecomendacionesUseCase>(TYPES.IGetRecomendacionesUseCase);

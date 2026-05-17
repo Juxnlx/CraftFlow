@@ -1,5 +1,4 @@
 import { injectable, inject } from "inversify";
-import "reflect-metadata";
 import { TYPES } from "../../../core/types";
 import { IIniciarProyectoUseCase } from "../../interfaces/usecases/IProyectoEnProgresoUseCases";
 import { IProyectoEnProgresoRepository } from "../../interfaces/repositories/IProyectoEnProgresoRepository";
@@ -8,6 +7,14 @@ import {
   PasoCompletado,
 } from "../../entities/ProyectoEnProgreso";
 
+/**
+ * Caso de uso para iniciar el seguimiento de un proyecto.
+ *
+ * Antes de crear un nuevo seguimiento comprueba si ya existe uno
+ * activo del mismo proyecto: si lo hay, lo devuelve sin duplicar.
+ * Esto permite al usuario entrar y salir del detalle del proyecto
+ * sin generar registros redundantes.
+ */
 @injectable()
 export class IniciarProyectoUseCase implements IIniciarProyectoUseCase {
   private _repo: IProyectoEnProgresoRepository;
@@ -20,9 +27,8 @@ export class IniciarProyectoUseCase implements IIniciarProyectoUseCase {
   }
 
   /**
-   * Inicia un seguimiento. Si ya hay uno activo del mismo proyecto, lo
-   * devuelve sin crear otro: así el usuario puede entrar y salir del detalle
-   * sin generar duplicados.
+   * Devuelve el seguimiento existente o crea uno nuevo con los pasos
+   * inicializados a partir del número de pasos del proyecto.
    */
   async execute(
     idUsuario: string,
@@ -60,7 +66,7 @@ export class IniciarProyectoUseCase implements IIniciarProyectoUseCase {
     );
     const id = await this._repo.crearProyectoEnProgreso(nuevo);
 
-    // Devolver una nueva instancia con el ID generado
+    // Devolvemos una nueva instancia con el ID generado por Firestore
     return new ProyectoEnProgreso(
       id,
       idUsuario,

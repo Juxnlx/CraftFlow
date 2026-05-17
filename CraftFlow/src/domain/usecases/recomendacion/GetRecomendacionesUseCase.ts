@@ -1,5 +1,4 @@
 import { injectable, inject } from "inversify";
-import "reflect-metadata";
 import { TYPES } from "../../../core/types";
 import { IGetRecomendacionesUseCase } from "../../interfaces/usecases/IRecomendacionUseCases";
 import { IProyectoRepository } from "../../interfaces/repositories/IProyectoRepository";

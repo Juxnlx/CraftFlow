@@ -3,22 +3,26 @@ import { View, Text, TouchableOpacity, Linking, StyleSheet } from "react-native"
 import { COLORS, SPACING, RADIUS } from "../../../config/theme";
 import { Material } from "../../../domain/entities/Material";
 
+/** Props de la tarjeta de material */
 interface MaterialCardProps {
+  /** Material a mostrar en la tarjeta */
   material: Material;
+  /** Acción al pulsar el botón de editar */
   onEdit: () => void;
+  /** Acción al pulsar el botón de eliminar */
   onDelete: () => void;
 }
 
 /**
- * Tarjeta de material en el inventario.
- * Muestra nombre, categoría, color y propiedades relevantes según la categoría.
+ * Tarjeta de material en el inventario. Muestra nombre, categoría, color
+ * y las propiedades relevantes según la categoría (metros, mililitros…).
  */
 export const MaterialCard: React.FC<MaterialCardProps> = ({
   material,
   onEdit,
   onDelete,
 }) => {
-  // Construir la descripción secundaria según la categoría
+  // Construir la línea de detalles solo con los campos que vienen rellenos
   const detalles: string[] = [];
   if (material.color) detalles.push(material.color);
   const props = material.propiedades;
@@ -29,6 +33,7 @@ export const MaterialCard: React.FC<MaterialCardProps> = ({
   if (props.unidades) detalles.push(`${props.unidades} uds`);
   if (props.tipoMaterial) detalles.push(String(props.tipoMaterial));
 
+  /** Emoji que representa visualmente cada categoría */
   const categoriaEmoji: Record<string, string> = {
     lana: "🧶",
     pintura: "🎨",

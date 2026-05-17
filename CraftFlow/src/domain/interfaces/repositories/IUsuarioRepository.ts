@@ -1,18 +1,11 @@
 import { Usuario } from "../../entities/Usuario";
 
 /**
- * Contrato para operaciones de datos sobre usuarios.
+ * Contrato para las operaciones sobre los datos de perfil de los usuarios.
  *
- * Separado de IAuthRepository porque Auth gestiona la sesión
- * (login, logout, registro) mientras que este repositorio gestiona
- * los datos del perfil (nombre, foto, intereses) y la consulta
- * de perfiles de otros usuarios.
- *
- * Se necesita principalmente para:
- * - Obtener el autor de un proyecto en las recomendaciones
- * - Mostrar el perfil de otros usuarios en la pantalla de explorar
- * - Actualizar el perfil del usuario en la pantalla de editar perfil
- * - Buscar usuarios por nombre
+ * Va separado de IAuthRepository: Auth se encarga de la sesión (login,
+ * logout, registro) y este repositorio se encarga del perfil (nombre,
+ * foto, intereses) y de la marca de ítems comprados de la lista de la compra.
  */
 export interface IUsuarioRepository {
   /**
@@ -30,13 +23,6 @@ export interface IUsuarioRepository {
    * @returns Promesa que se resuelve al completar la actualización
    */
   actualizarUsuario(idUsuario: string, datos: Partial<Usuario>): Promise<void>;
-
-  /**
-   * Busca usuarios activos cuyo nombre coincida parcialmente con el texto.
-   * @param texto - Texto a buscar en el nombre del usuario
-   * @returns Promesa que resuelve a un array de usuarios coincidentes
-   */
-  buscarUsuarios(texto: string): Promise<Usuario[]>;
 
   /**
    * Devuelve las claves de los ítems de la lista de la compra que el usuario

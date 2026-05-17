@@ -5,9 +5,9 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
   Alert,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { observer } from "mobx-react-lite";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RouteProp } from "@react-navigation/native";
@@ -21,6 +21,7 @@ import { Material, CategoriaType } from "../../../domain/entities/Material";
 import { Herramienta } from "../../../domain/entities/Herramienta";
 import { COLORS, SPACING, RADIUS } from "../../../config/theme";
 
+/** Props inyectadas por React Navigation a la pantalla de añadir/editar */
 type AddEditMaterialScreenProps = {
   navigation: NativeStackNavigationProp<
     InventoryStackParamList,
@@ -29,7 +30,7 @@ type AddEditMaterialScreenProps = {
   route: RouteProp<InventoryStackParamList, "AddEditMaterial">;
 };
 
-// Tipo extendido que incluye "herramienta"
+/** Categoría del selector: las del dominio + "herramienta" */
 type CategoriaExtendida = CategoriaType | "herramienta";
 
 // Todas las categorías disponibles en el selector (incluyendo herramientas)
@@ -90,9 +91,7 @@ const PLACEHOLDERS_COMUNES: Record<
   herramienta: { nombre: "Ej: Aguja crochet 3.5mm", color: "", precio: "" },
 };
 
-/**
- * Snapshot de los valores del formulario para detectar cambios sin guardar.
- */
+/** Snapshot de los valores del formulario para detectar cambios sin guardar */
 interface FormSnapshot {
   nombre: string;
   color: string;
@@ -104,9 +103,8 @@ interface FormSnapshot {
 }
 
 /**
- * Normaliza una URL: si el usuario escribe "tiendamaterial.com"
- * sin protocolo, se le añade "https://" automáticamente para que
- * Linking.openURL pueda abrirla correctamente.
+ * Normaliza una URL añadiéndole "https://" si el usuario no escribió
+ * protocolo (p.ej. "tiendamaterial.com"). Devuelve null si está vacía.
  */
 const normalizarUrl = (url: string): string | null => {
   const limpia = url.trim();
@@ -115,12 +113,13 @@ const normalizarUrl = (url: string): string | null => {
   return `https://${limpia}`;
 };
 
+/** Serializa el snapshot para poder compararlo con `===`. */
 const snapshotToString = (snap: FormSnapshot): string => JSON.stringify(snap);
 
 /**
- * Pantalla para crear o editar un material o herramienta.
- * - Modo CREAR: Flujo en DOS PASOS (selector de categoría → formulario)
- * - Modo EDITAR: Salta directo al formulario con los datos pre-rellenados
+ * Pantalla para crear o editar un material o herramienta. En modo crear
+ * usa un flujo en dos pasos (selector de categoría → formulario); en
+ * modo edición salta directamente al formulario ya relleno.
  */
 export const AddEditMaterialScreen = observer(
   ({ navigation, route }: AddEditMaterialScreenProps) => {
@@ -246,6 +245,7 @@ export const AddEditMaterialScreen = observer(
       }
     }, [categoriaSeleccionada]);
 
+    /** Actualiza una sola clave del objeto `propiedades`. */
     const updatePropiedad = (key: string, value: string) => {
       setPropiedades((prev) => ({ ...prev, [key]: value }));
     };
@@ -274,6 +274,26 @@ export const AddEditMaterialScreen = observer(
     handlersRef.current.hasUnsavedChanges = hasUnsavedChanges;
     handlersRef.current.restoreOriginalData = restoreOriginalData;
 
+    // Ref con el estado actual del formulario para que el listener pueda
+    // detectar si hay datos rellenos sin necesidad de re-suscribirse en
+    // cada cambio de campo.
+    const formStateRef = useRef({
+      nombre,
+      color,
+      precio,
+      urlCompra,
+      tipoHerramienta,
+      propiedades,
+    });
+    formStateRef.current = {
+      nombre,
+      color,
+      precio,
+      urlCompra,
+      tipoHerramienta,
+      propiedades,
+    };
+
     /**
      * Intercepta cualquier intento de salir: botón ← del header,
      * botón Cancelar, back físico de Android y swipe-back de iOS.
@@ -290,9 +310,38 @@ export const AddEditMaterialScreen = observer(
           return;
         }
         if (!isEditing && categoriaSeleccionada) {
+          // Si el usuario ya escribió algo en el formulario, avisamos antes
+          // de volver al selector de categoría (perdería los datos).
+          const f = formStateRef.current;
+          const tieneDatos =
+            !!f.nombre.trim() ||
+            !!f.color.trim() ||
+            !!f.precio.trim() ||
+            !!f.urlCompra.trim() ||
+            !!f.tipoHerramienta.trim() ||
+            Object.values(f.propiedades).some((v) => v.trim());
+          if (!tieneDatos) {
+            e.preventDefault();
+            setCategoriaSeleccionada(null);
+            resetearFormulario();
+            return;
+          }
           e.preventDefault();
-          setCategoriaSeleccionada(null);
-          resetearFormulario();
+          Alert.alert(
+            "¿Salir sin guardar?",
+            "Vas a perder lo que llevas escrito.",
+            [
+              {
+                text: "Salir",
+                style: "destructive",
+                onPress: () => {
+                  setCategoriaSeleccionada(null);
+                  resetearFormulario();
+                },
+              },
+              { text: "Continuar editando", style: "cancel" },
+            ]
+          );
           return;
         }
         if (isEditing && handlersRef.current.hasUnsavedChanges()) {
@@ -319,6 +368,12 @@ export const AddEditMaterialScreen = observer(
       return unsubscribe;
     }, [navigation, isEditing, categoriaSeleccionada]);
 
+    /**
+     * Valida los campos y guarda el material o herramienta. Si `shouldNavigate`
+     * es true (el caso normal), vuelve atrás al terminar; cuando se llama
+     * desde el diálogo de "cambios sin guardar" pasamos false para no
+     * encadenar dos goBack seguidos.
+     */
     const handleGuardar = async (
       shouldNavigate: boolean = true
     ): Promise<boolean> => {
@@ -654,7 +709,6 @@ const styles = StyleSheet.create({
   },
   scroll: {
     padding: SPACING.md,
-    paddingTop: SPACING.xl + 16,
     paddingBottom: SPACING.xl,
   },
   // Cabecera
@@ -673,14 +727,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderWidth: 1,
     borderColor: COLORS.borderLight,
-  },
-  backText: {
-    fontSize: 22,
-    lineHeight: 22,
-    color: COLORS.text,
-    fontWeight: "700",
-    textAlign: "center",
-    includeFontPadding: false,
   },
   headerTitleBox: {
     flex: 1,

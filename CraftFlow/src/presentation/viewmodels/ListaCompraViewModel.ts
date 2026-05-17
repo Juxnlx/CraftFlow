@@ -11,15 +11,23 @@ import { IUsuarioRepository } from "../../domain/interfaces/repositories/IUsuari
  * guardados como favoritos y expone el progreso global.
  */
 export class ListaCompraViewModel {
+  /** Ítems pendientes calculados a partir de los favoritos del usuario */
   items: ItemCompra[] = [];
+  /** Claves de ítems marcados como comprados (persistidas en Firestore) */
   itemsComprados: Set<string> = new Set();
+  /** Indica si se está calculando la lista */
   isLoading: boolean = false;
+  /** Mensaje de error a mostrar en la UI, o null si no hay */
   mensajeError: string | null = null;
 
+  /** Caso de uso que calcula los ítems pendientes */
   private _getListaCompraUseCase: IGetListaCompraUseCase;
+  /** Repositorio de usuario, usado para persistir las marcas de "comprado" */
   private _usuarioRepository: IUsuarioRepository;
+  /** UID del último usuario cargado, necesario para persistir cambios */
   private _idUsuarioActual: string | null = null;
 
+  /** Activa MobX y resuelve las dependencias desde el contenedor de DI. */
   constructor() {
     makeAutoObservable(this);
     this._getListaCompraUseCase = container.get<IGetListaCompraUseCase>(

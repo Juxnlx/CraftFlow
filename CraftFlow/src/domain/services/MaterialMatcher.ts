@@ -2,24 +2,17 @@ import { Material } from "../entities/Material";
 import { Herramienta } from "../entities/Herramienta";
 
 /**
- * Servicio compartido de comparación de materiales y herramientas.
+ * Servicio compartido para comparar materiales y herramientas del usuario
+ * con los requeridos por un proyecto. Lo usan el motor de recomendaciones
+ * y la lista de la compra, para que ambos casen.
  *
- * Centraliza la lógica de matching usada por el motor de recomendaciones
- * (`GetRecomendacionesUseCase`) y por la lista de la compra
- * (`GetListaCompraUseCase`) para que ambos den resultados coherentes:
- * si Home dice "tienes este material", la Lista de la compra no debe
- * pedírtelo.
- *
- * Tres herramientas de tolerancia para que el match aguante variaciones
- * naturales del usuario:
- *  - Sinónimos: "ovillo" ≡ "hilo", "madeja" ≡ "hilo", "folio" ≡ "papel"…
- *  - Levenshtein: tolera typos cortos ("alggodon" ≈ "algodon").
- *  - Coincidencia parcial por palabras: basta con ≥50% para considerar match.
+ * Tolera variaciones del usuario combinando sinónimos, distancia de
+ * Levenshtein y coincidencia parcial por palabras.
  */
 export class MaterialMatcher {
   /**
    * Diccionario de sinónimos: cada clave se sustituye por su valor canónico
-   * antes de comparar nombres. Ampliable según se vayan detectando casos.
+   * antes de comparar nombres.
    */
   private static readonly SINONIMOS: Record<string, string> = {
     ovillo: "hilo",
@@ -152,8 +145,8 @@ export class MaterialMatcher {
 
   /**
    * Material compatible completo: categoría + nombre + cantidad suficiente.
-   * Es el chequeo que tanto el motor de recomendaciones como la lista
-   * de la compra deben usar para que sus resultados coincidan.
+   * Es el método que usan recomendaciones y lista de la compra para
+   * que sus resultados coincidan.
    */
   static esMaterialCompatible(
     materialRequerido: { nombre: string; categoria: string; cantidad: string | null },
@@ -167,13 +160,10 @@ export class MaterialMatcher {
 
   /**
    * Comprueba si el material del inventario cubre la cantidad requerida.
-   * Convierte ambas cantidades a la unidad base de la categoría antes de
-   * comparar, evitando comparaciones absurdas como "126 kg ≥ 250 g".
-   *
-   * Reglas:
-   *  - Si no hay cantidad pedida o no es parseable, devuelve true.
-   *  - Si la propiedad principal del usuario no está rellena, compara
-   *    contra las unidades del inventario sin convertir.
+   * Convierte ambas cantidades a la unidad base de la categoría antes
+   * de comparar para no mezclar magnitudes distintas. Si no hay cantidad
+   * pedida o no es parseable devuelve true, y si la propiedad principal
+   * del usuario no está rellena compara contra las unidades sin convertir.
    */
   static cumpleCantidad(
     materialRequerido: { categoria: string; cantidad: string | null },
@@ -284,7 +274,7 @@ export class MaterialMatcher {
 
   /**
    * Extrae el primer número (entero o decimal) que aparece en un string.
-   * Ej.: "80 metros" → 80; "1.5 m" → 1.5; "dos ovillos" → null.
+   * Devuelve null si no encuentra ninguno.
    */
   private static extraerNumero(texto: string): number | null {
     const match = texto.match(/[\d]+(?:[.,]\d+)?/);

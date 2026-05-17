@@ -9,13 +9,6 @@ export interface IMaterialRepository {
   getMaterialesPorUsuario(idUsuario: string): Promise<Material[]>;
 
   /**
-   * Obtiene un material específico por su ID.
-   * @param idMaterial - ID del material a buscar
-   * @returns Promesa que resuelve al material encontrado
-   */
-  getMaterialPorId(idMaterial: string): Promise<Material>;
-
-  /**
    * Crea un nuevo material en la base de datos.
    * @param material - Objeto material a persistir
    * @returns Promesa que resuelve al ID del material creado

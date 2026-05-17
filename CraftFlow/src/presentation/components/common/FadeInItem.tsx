@@ -13,14 +13,9 @@ interface FadeInItemProps {
 }
 
 /**
- * Wrapper que hace aparecer su contenido con un fade-in + slide-up sutil.
- *
- * Pensado para usarse dentro de renderItem de FlatList/SectionList:
- * el parámetro index activa un delay escalonado para crear el típico
- * efecto de "entrada cascada" donde los elementos aparecen uno tras otro.
- *
- * El delay se limita a 500ms para que las listas largas no tarden
- * demasiado en terminar de animar los primeros elementos visibles.
+ * Wrapper que hace aparecer su contenido con un fade-in y slide-up sutil.
+ * Aplica un delay escalonado según el índice (en cascada) para listas.
+ * El delay se limita a 500ms para que las listas largas no se queden esperando.
  */
 export const FadeInItem: React.FC<FadeInItemProps> = ({
   index,

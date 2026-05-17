@@ -99,7 +99,9 @@ import { GetMisProyectosEnProgresoUseCase } from "../domain/usecases/proyectoenp
 import { AbandonarProyectoUseCase } from "../domain/usecases/proyectoenprogreso/AbandonarProyectoUseCase";
 
 /**
- * Contenedor de inyección de dependencias de Inversify.
+ * Contenedor único de Inversify. Aquí se mapea cada interfaz del dominio
+ * a su implementación concreta (Firebase, Cloudinary o caso de uso) para
+ * que los componentes y use cases reciban dependencias por inyección.
  */
 const container = new Container();
 

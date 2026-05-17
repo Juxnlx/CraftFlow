@@ -6,9 +6,9 @@ import {
   TouchableOpacity,
   Image,
   StyleSheet,
-  SafeAreaView,
   Alert,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { observer } from "mobx-react-lite";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RouteProp } from "@react-navigation/native";
@@ -31,6 +31,7 @@ import {
 import { COLORS, SPACING, RADIUS } from "../../../config/theme";
 import * as ImagePicker from "expo-image-picker";
 
+/** Props inyectadas por React Navigation a la pantalla de crear/editar proyecto */
 type CreateProjectScreenProps = {
   navigation: NativeStackNavigationProp<
     ProfileStackParamList,
@@ -39,8 +40,8 @@ type CreateProjectScreenProps = {
   route: RouteProp<ProfileStackParamList, "CreateProject">;
 };
 
-// Niveles de dificultad con iconos visuales para que el usuario
-// perciba la complejidad a simple vista (estrellas acumulativas).
+// Niveles de dificultad con estrellas acumulativas para que el usuario
+// perciba la complejidad a simple vista.
 const DIFICULTADES: { key: Dificultad; label: string; estrellas: string }[] = [
   { key: "facil", label: "Fácil", estrellas: "⭐" },
   { key: "intermedio", label: "Intermedio", estrellas: "⭐⭐" },
@@ -74,6 +75,7 @@ const CATEGORIAS_MATERIAL: {
   { value: "papel", label: "Papel / Cartón", emoji: "📄", etiqueta: "Hojas necesarias" },
 ];
 
+/** Devuelve la etiqueta de cantidad apropiada para la categoría del material. */
 const cantidadLabel = (categoria: string | null): string => {
   if (!categoria) return "Cantidad necesaria";
   const cat = CATEGORIAS_MATERIAL.find((c) => c.value === categoria);
@@ -81,12 +83,9 @@ const cantidadLabel = (categoria: string | null): string => {
 };
 
 /**
- * Pantalla para crear o editar un proyecto con materiales, herramientas,
- * etiquetas y pasos del proceso.
- *
- * Modo edición: si recibe `idEditar` por route.params, busca el proyecto
- * en `proyectoVM.misProyectos`, pre-rellena el formulario y al guardar
- * llama a `actualizarProyecto` en lugar de `crearProyecto`.
+ * Pantalla para crear o editar un proyecto: imagen, datos básicos,
+ * materiales, herramientas y pasos. En modo edición recibe `idEditar`
+ * y pre-rellena el formulario con los datos existentes.
  */
 export const CreateProjectScreen = observer(
   ({ navigation, route }: CreateProjectScreenProps) => {
@@ -115,6 +114,7 @@ export const CreateProjectScreen = observer(
     // cambios sin guardar al volver atrás o cancelar (solo en edición).
     const originalSnapshot = useRef<string>("");
 
+    /** Serializa el estado actual del formulario para poder compararlo. */
     const getCurrentSnapshot = () =>
       JSON.stringify({
         nombre,
@@ -128,15 +128,18 @@ export const CreateProjectScreen = observer(
         imagenUri,
       });
 
+    /** Indica si el usuario ha modificado algo desde la última carga. */
     const hasUnsavedChanges = (): boolean => {
       if (!originalSnapshot.current) return false;
       return getCurrentSnapshot() !== originalSnapshot.current;
     };
 
+    /** Guarda el snapshot actual como referencia para futuras comparaciones. */
     const saveOriginalSnapshot = () => {
       originalSnapshot.current = getCurrentSnapshot();
     };
 
+    /** Restaura todos los campos al estado guardado en el snapshot original. */
     const restoreOriginalData = () => {
       if (!originalSnapshot.current) return;
       const o = JSON.parse(originalSnapshot.current);
@@ -176,7 +179,17 @@ export const CreateProjectScreen = observer(
       }
     }, [loaded]);
 
+    // En modo creación guardamos un snapshot vacío al montar para que
+    // hasUnsavedChanges detecte cualquier campo añadido y avise al salir.
+    useEffect(() => {
+      if (!isEditing) {
+        saveOriginalSnapshot();
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     // ─── Materiales ───
+    /** Añade un material vacío al final de la lista. */
     const addMaterial = () => {
       setMateriales([
         ...materiales,
@@ -184,6 +197,7 @@ export const CreateProjectScreen = observer(
       ]);
     };
 
+    /** Actualiza un campo concreto de un material en la posición indicada. */
     const updateMaterial = (
       index: number,
       field: keyof MaterialRequerido,
@@ -194,15 +208,18 @@ export const CreateProjectScreen = observer(
       setMateriales(updated);
     };
 
+    /** Elimina el material en la posición indicada. */
     const removeMaterial = (index: number) => {
       setMateriales(materiales.filter((_, i) => i !== index));
     };
 
     // ─── Herramientas ───
+    /** Añade una herramienta vacía al final de la lista. */
     const addHerramienta = () => {
       setHerramientas([...herramientas, { nombre: "", tipo: "" }]);
     };
 
+    /** Actualiza un campo de la herramienta en la posición indicada. */
     const updateHerramienta = (
       index: number,
       field: keyof HerramientaRequerida,
@@ -213,11 +230,13 @@ export const CreateProjectScreen = observer(
       setHerramientas(updated);
     };
 
+    /** Elimina la herramienta en la posición indicada. */
     const removeHerramienta = (index: number) => {
       setHerramientas(herramientas.filter((_, i) => i !== index));
     };
 
     // ─── Pasos ───
+    /** Añade un paso vacío al final, asignándole el número de orden siguiente. */
     const addPaso = () => {
       setPasos([
         ...pasos,
@@ -225,12 +244,14 @@ export const CreateProjectScreen = observer(
       ]);
     };
 
+    /** Actualiza la descripción del paso en la posición indicada. */
     const updatePaso = (index: number, descripcion: string) => {
       const updated = [...pasos];
       updated[index].descripcion = descripcion;
       setPasos(updated);
     };
 
+    /** Elimina el paso indicado y renumera los restantes. */
     const removePaso = (index: number) => {
       const updated = pasos
         .filter((_, i) => i !== index)
@@ -238,6 +259,7 @@ export const CreateProjectScreen = observer(
       setPasos(updated);
     };
 
+    /** Abre la galería del dispositivo para escoger la imagen principal del proyecto. */
     const handlePickImage = async () => {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ["images"],
@@ -251,6 +273,11 @@ export const CreateProjectScreen = observer(
       }
     };
 
+    /**
+     * Valida los campos obligatorios, sube la imagen si es nueva y
+     * crea o actualiza el proyecto. `shouldNavigate` se pone a false
+     * cuando se llama desde el diálogo de cambios sin guardar.
+     */
     const handlePublicar = async (
       shouldNavigate: boolean = true
     ): Promise<boolean> => {
@@ -365,22 +392,27 @@ export const CreateProjectScreen = observer(
      * y gesto swipe-back de iOS. Solo activo en modo edición.
      */
     useEffect(() => {
-      if (!isEditing) return;
       const unsubscribe = navigation.addListener("beforeRemove", (e) => {
         if (!handlersRef.current.hasUnsavedChanges()) return;
         e.preventDefault();
-        Alert.alert("Cambios sin guardar", "¿Quieres guardar los cambios?", [
+        const titulo = isEditing ? "Cambios sin guardar" : "¿Salir sin guardar?";
+        const mensaje = isEditing
+          ? "¿Quieres guardar los cambios?"
+          : "Vas a perder lo que llevas escrito del proyecto.";
+        Alert.alert(titulo, mensaje, [
           {
-            text: "No",
+            text: isEditing ? "No" : "Salir",
             style: "destructive",
             onPress: () => {
-              handlersRef.current.restoreOriginalData();
+              if (isEditing) handlersRef.current.restoreOriginalData();
               navigation.dispatch(e.data.action);
             },
           },
           {
-            text: "Sí",
+            text: isEditing ? "Sí" : "Continuar editando",
+            style: isEditing ? "default" : "cancel",
             onPress: async () => {
+              if (!isEditing) return;
               const ok = await handlersRef.current.handlePublicar(false);
               if (ok) navigation.dispatch(e.data.action);
             },
@@ -768,7 +800,6 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.bg },
   scroll: {
     padding: SPACING.md,
-    paddingTop: SPACING.xl + 16,
     paddingBottom: SPACING.xl,
   },
   // Cabecera

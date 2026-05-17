@@ -5,11 +5,10 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
-  TextInput,
   StyleSheet,
-  SafeAreaView,
   Alert,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { observer } from "mobx-react-lite";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
@@ -25,14 +24,12 @@ import { Button } from "../../../presentation/components/common/Button";
 import { LoadingSpinner } from "../../../presentation/components/common/LoadingSpinner";
 import { COLORS, SPACING, RADIUS } from "../../../config/theme";
 
+/** Props inyectadas por React Navigation a la pantalla de completar */
 type CompletarProyectoScreenProps = {
   navigation: NativeStackNavigationProp<any>;
 };
 
-/**
- * Convierte segundos a una cadena humana: "2h 15min", "45min", "30s".
- * Se usa para resumir el tiempo invertido en el proyecto al cerrarlo.
- */
+/** Convierte segundos a una cadena humana del estilo "2h 15min", "45min" o "30s". */
 const formatearDuracion = (segundos: number): string => {
   if (segundos < 60) return `${segundos}s`;
   const horas = Math.floor(segundos / 3600);
@@ -43,11 +40,9 @@ const formatearDuracion = (segundos: number): string => {
 };
 
 /**
- * Pantalla final del modo realización: el usuario marca el proyecto como
- * completado, opcionalmente añade una foto del resultado y una reflexión.
- *
- * Al guardar, se cierra el seguimiento (estado "completado") y la pantalla
- * vuelve al detalle del proyecto.
+ * Pantalla final del modo realización: el usuario añade opcionalmente una
+ * foto del resultado y cierra el seguimiento como completado. Al guardar
+ * volvemos al detalle del proyecto saltando las dos pantallas intermedias.
  */
 export const CompletarProyectoScreen = observer(
   ({ navigation }: CompletarProyectoScreenProps) => {
@@ -55,7 +50,6 @@ export const CompletarProyectoScreen = observer(
     const seguimiento = proyectoEnProgresoVM.proyectoActivo;
 
     const [imagenLocal, setImagenLocal] = useState<string | null>(null);
-    const [nota, setNota] = useState("");
     const [subiendoFoto, setSubiendoFoto] = useState(false);
 
     if (!proyecto || !seguimiento) {
@@ -66,6 +60,7 @@ export const CompletarProyectoScreen = observer(
       proyectoEnProgresoVM.tiempoTotalSegundos
     );
 
+    /** Abre la galería del dispositivo para escoger una foto del resultado. */
     const handlePickImage = async () => {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ["images"],
@@ -78,6 +73,10 @@ export const CompletarProyectoScreen = observer(
       }
     };
 
+    /**
+     * Sube la foto si la hay, marca el seguimiento como completado y
+     * vuelve directamente al detalle del proyecto.
+     */
     const handleGuardar = async () => {
       let imagenUrl: string | null = null;
 
@@ -104,7 +103,7 @@ export const CompletarProyectoScreen = observer(
 
       const ok = await proyectoEnProgresoVM.completarProyecto(
         imagenUrl,
-        nota.trim() || null
+        null
       );
       if (ok) {
         // Volvemos saltando RealizandoProyecto y CompletarProyecto: el usuario
@@ -113,10 +112,11 @@ export const CompletarProyectoScreen = observer(
       }
     };
 
+    /** Pide confirmación antes de descartar la foto seleccionada. */
     const handleCancelar = () => {
       Alert.alert(
         "¿Cancelar?",
-        "Perderás esta foto y la nota, pero el progreso del proyecto seguirá guardado.",
+        "Perderás esta foto, pero el progreso del proyecto seguirá guardado.",
         [
           { text: "Seguir aquí", style: "cancel" },
           {
@@ -205,24 +205,6 @@ export const CompletarProyectoScreen = observer(
             </TouchableOpacity>
           )}
 
-          {/* ─── Nota personal ─── */}
-          <Text style={styles.sectionTitle}>Tu reflexión</Text>
-          <Text style={styles.sectionHint}>
-            ¿Qué tal te ha salido? ¿Lo recomendarías? (opcional)
-          </Text>
-          <TextInput
-            style={styles.notaInput}
-            placeholder="Me ha gustado mucho hacerlo, lo siguiente que probaré es..."
-            placeholderTextColor={COLORS.textLight}
-            value={nota}
-            onChangeText={setNota}
-            multiline
-            numberOfLines={5}
-            textAlignVertical="top"
-            maxLength={500}
-          />
-          <Text style={styles.notaCounter}>{nota.length} / 500</Text>
-
           {/* ─── Acciones ─── */}
           <View style={styles.actions}>
             <Button
@@ -246,7 +228,6 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.bg },
   scroll: {
     padding: SPACING.md,
-    paddingTop: SPACING.xl + 16,
     paddingBottom: SPACING.xl,
   },
 
@@ -391,23 +372,6 @@ const styles = StyleSheet.create({
   },
 
   // Nota
-  notaInput: {
-    backgroundColor: COLORS.white,
-    borderWidth: 1,
-    borderColor: COLORS.borderLight,
-    borderRadius: RADIUS.md,
-    padding: SPACING.md,
-    fontSize: 14,
-    color: COLORS.text,
-    minHeight: 100,
-  },
-  notaCounter: {
-    fontSize: 11,
-    color: COLORS.textLight,
-    textAlign: "right",
-    marginTop: SPACING.xs,
-  },
-
   // Acciones
   actions: {
     marginTop: SPACING.lg,

@@ -20,7 +20,8 @@ import { ShoppingListScreen } from "../../app/views/saved/ShoppingListScreen";
 import { RealizandoProyectoScreen } from "../../app/views/shared/RealizandoProyectoScreen";
 import { CompletarProyectoScreen } from "../../app/views/shared/CompletarProyectoScreen";
 
-// Tipos de navegación para cada stack interno
+// Tipos de navegación de los stacks internos de cada tab
+/** Rutas del stack de Home */
 export type HomeStackParamList = {
   HomeMain: undefined;
   ProjectDetail: { idProyecto: string };
@@ -28,6 +29,7 @@ export type HomeStackParamList = {
   CompletarProyecto: undefined;
 };
 
+/** Rutas del stack de Explorar */
 export type ExploreStackParamList = {
   ExploreMain: undefined;
   ProjectDetail: { idProyecto: string };
@@ -35,11 +37,13 @@ export type ExploreStackParamList = {
   CompletarProyecto: undefined;
 };
 
+/** Rutas del stack de Inventario */
 export type InventoryStackParamList = {
   InventoryMain: undefined;
   AddEditMaterial: { idEditar?: string };
 };
 
+/** Rutas del stack de Guardados */
 export type SavedStackParamList = {
   SavedMain: undefined;
   ShoppingList: undefined;
@@ -48,6 +52,7 @@ export type SavedStackParamList = {
   CompletarProyecto: undefined;
 };
 
+/** Rutas del stack de Perfil */
 export type ProfileStackParamList = {
   ProfileMain: undefined;
   EditProfile: undefined;
@@ -57,13 +62,14 @@ export type ProfileStackParamList = {
   CompletarProyecto: undefined;
 };
 
-// Stacks internos para cada tab
+// Instancias de stack para cada tab
 const HomeStack = createNativeStackNavigator<HomeStackParamList>();
 const ExploreStack = createNativeStackNavigator<ExploreStackParamList>();
 const InventoryStack = createNativeStackNavigator<InventoryStackParamList>();
 const SavedStack = createNativeStackNavigator<SavedStackParamList>();
 const ProfileStack = createNativeStackNavigator<ProfileStackParamList>();
 
+/** Stack interno del tab Home y sus subpantallas. */
 const HomeStackScreen: React.FC = () => (
   <HomeStack.Navigator screenOptions={{ headerShown: false }}>
     <HomeStack.Screen name="HomeMain" component={HomeScreen} />
@@ -73,6 +79,7 @@ const HomeStackScreen: React.FC = () => (
   </HomeStack.Navigator>
 );
 
+/** Stack interno del tab Explorar y sus subpantallas. */
 const ExploreStackScreen: React.FC = () => (
   <ExploreStack.Navigator screenOptions={{ headerShown: false }}>
     <ExploreStack.Screen name="ExploreMain" component={ExploreScreen} />
@@ -82,6 +89,7 @@ const ExploreStackScreen: React.FC = () => (
   </ExploreStack.Navigator>
 );
 
+/** Stack interno del tab Inventario y sus subpantallas. */
 const InventoryStackScreen: React.FC = () => (
   <InventoryStack.Navigator screenOptions={{ headerShown: false }}>
     <InventoryStack.Screen name="InventoryMain" component={InventoryScreen} />
@@ -89,6 +97,7 @@ const InventoryStackScreen: React.FC = () => (
   </InventoryStack.Navigator>
 );
 
+/** Stack interno del tab Guardados y sus subpantallas. */
 const SavedStackScreen: React.FC = () => (
   <SavedStack.Navigator screenOptions={{ headerShown: false }}>
     <SavedStack.Screen name="SavedMain" component={SavedScreen} />
@@ -99,6 +108,7 @@ const SavedStackScreen: React.FC = () => (
   </SavedStack.Navigator>
 );
 
+/** Stack interno del tab Perfil y sus subpantallas. */
 const ProfileStackScreen: React.FC = () => (
   <ProfileStack.Navigator screenOptions={{ headerShown: false }}>
     <ProfileStack.Screen name="ProfileMain" component={ProfileScreen} />

@@ -3,11 +3,15 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { COLORS, SPACING, RADIUS } from "../../../config/theme";
 import { CategoriaType } from "../../../domain/entities/Material";
 
+/** Props del selector de categoría */
 interface CategorySelectorProps {
+  /** Categoría seleccionada actualmente, o null si no hay ninguna */
   selectedCategory: CategoriaType | null;
+  /** Callback que recibe la nueva categoría al pulsar un chip */
   onSelect: (category: CategoriaType) => void;
 }
 
+/** Lista de categorías soportadas con su emoji y etiqueta visible */
 const CATEGORIAS: { key: CategoriaType; emoji: string; label: string }[] = [
   { key: "lana", emoji: "🧶", label: "Lana / Hilo" },
   { key: "pintura", emoji: "🎨", label: "Pintura" },

@@ -1,10 +1,12 @@
 import { makeAutoObservable, runInAction } from "mobx";
 import { container } from "../../core/container";
 import { TYPES } from "../../core/types";
-import { IGetHerramientasUseCase } from "../../domain/interfaces/usecases/IHerramientaUseCases";
-import { ICreateHerramientaUseCase } from "../../domain/interfaces/usecases/IHerramientaUseCases";
-import { IUpdateHerramientaUseCase } from "../../domain/interfaces/usecases/IHerramientaUseCases";
-import { IDeleteHerramientaUseCase } from "../../domain/interfaces/usecases/IHerramientaUseCases";
+import {
+  IGetHerramientasUseCase,
+  ICreateHerramientaUseCase,
+  IUpdateHerramientaUseCase,
+  IDeleteHerramientaUseCase,
+} from "../../domain/interfaces/usecases/IHerramientaUseCases";
 import { Herramienta } from "../../domain/entities/Herramienta";
 
 /**
@@ -12,16 +14,25 @@ import { Herramienta } from "../../domain/entities/Herramienta";
  * Mismo patrón CRUD que MaterialViewModel.
  */
 export class HerramientaViewModel {
+  /** Lista de herramientas del inventario del usuario actual */
   herramientas: Herramienta[] = [];
+  /** Indica si hay una operación en curso (carga o CRUD) */
   isLoading: boolean = false;
+  /** Mensaje de error a mostrar en la UI, o null si no hay */
   error: string | null = null;
 
+  /** UID del último usuario cargado, usado para recargar tras un CRUD */
   private _idUsuarioActual: string = "";
+  /** Caso de uso para obtener las herramientas del usuario */
   private _getHerramientasUseCase: IGetHerramientasUseCase;
+  /** Caso de uso para crear una herramienta */
   private _createHerramientaUseCase: ICreateHerramientaUseCase;
+  /** Caso de uso para actualizar una herramienta */
   private _updateHerramientaUseCase: IUpdateHerramientaUseCase;
+  /** Caso de uso para eliminar una herramienta */
   private _deleteHerramientaUseCase: IDeleteHerramientaUseCase;
 
+  /** Activa MobX y resuelve los casos de uso desde el contenedor de DI. */
   constructor() {
     makeAutoObservable(this);
     this._getHerramientasUseCase = container.get<IGetHerramientasUseCase>(TYPES.IGetHerramientasUseCase);

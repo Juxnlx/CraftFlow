@@ -1,12 +1,14 @@
 import { makeAutoObservable, runInAction } from "mobx";
 import { container } from "../../core/container";
 import { TYPES } from "../../core/types";
-import { IGetProyectosPublicosUseCase } from "../../domain/interfaces/usecases/IProyectoUseCases";
-import { IGetMisProyectosUseCase } from "../../domain/interfaces/usecases/IProyectoUseCases";
-import { IGetProyectoByIdUseCase } from "../../domain/interfaces/usecases/IProyectoUseCases";
-import { ICreateProyectoUseCase } from "../../domain/interfaces/usecases/IProyectoUseCases";
-import { IUpdateProyectoUseCase } from "../../domain/interfaces/usecases/IProyectoUseCases";
-import { IDeleteProyectoUseCase } from "../../domain/interfaces/usecases/IProyectoUseCases";
+import {
+  IGetProyectosPublicosUseCase,
+  IGetMisProyectosUseCase,
+  IGetProyectoByIdUseCase,
+  ICreateProyectoUseCase,
+  IUpdateProyectoUseCase,
+  IDeleteProyectoUseCase,
+} from "../../domain/interfaces/usecases/IProyectoUseCases";
 import { Proyecto } from "../../domain/entities/Proyecto";
 import { IUsuarioRepository } from "../../domain/interfaces/repositories/IUsuarioRepository";
 
@@ -15,22 +17,37 @@ import { IUsuarioRepository } from "../../domain/interfaces/repositories/IUsuari
  * detalle, búsqueda y operaciones CRUD.
  */
 export class ProyectoViewModel {
+  /** Proyectos públicos para el feed de Explorar */
   proyectosPublicos: Proyecto[] = [];
+  /** Proyectos creados por el usuario actual */
   misProyectos: Proyecto[] = [];
+  /** Proyecto cargado en la pantalla de detalle, o null */
   proyectoDetalle: Proyecto | null = null;
+  /** Proyectos que cumplen el filtro de búsqueda actual */
   resultadosBusqueda: Proyecto[] = [];
+  /** Cache id de usuario → nombre, para no pedirlos en cada render */
   nombresAutores: Record<string, string> = {};
+  /** Indica si hay una operación en curso */
   isLoading: boolean = false;
+  /** Mensaje de error a mostrar en la UI, o null si no hay */
   error: string | null = null;
 
+  /** Caso de uso para listar los proyectos públicos */
   private _getPublicosUseCase: IGetProyectosPublicosUseCase;
+  /** Caso de uso para listar los proyectos del usuario */
   private _getMisProyectosUseCase: IGetMisProyectosUseCase;
+  /** Caso de uso para obtener un proyecto por ID */
   private _getByIdUseCase: IGetProyectoByIdUseCase;
+  /** Caso de uso para crear un proyecto */
   private _createUseCase: ICreateProyectoUseCase;
+  /** Caso de uso para actualizar un proyecto */
   private _updateUseCase: IUpdateProyectoUseCase;
+  /** Caso de uso para eliminar (borrado lógico) un proyecto */
   private _deleteUseCase: IDeleteProyectoUseCase;
+  /** Repositorio de usuarios, usado para resolver nombres de autores */
   private _usuarioRepository: IUsuarioRepository;
 
+  /** Activa MobX y resuelve dependencias desde el contenedor de DI. */
   constructor() {
     makeAutoObservable(this);
     this._getPublicosUseCase = container.get<IGetProyectosPublicosUseCase>(TYPES.IGetProyectosPublicosUseCase);

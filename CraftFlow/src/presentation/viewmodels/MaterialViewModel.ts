@@ -1,28 +1,38 @@
 import { makeAutoObservable, runInAction } from "mobx";
 import { container } from "../../core/container";
 import { TYPES } from "../../core/types";
-import { IGetMaterialesUseCase } from "../../domain/interfaces/usecases/IMaterialUseCases";
-import { ICreateMaterialUseCase } from "../../domain/interfaces/usecases/IMaterialUseCases";
-import { IUpdateMaterialUseCase } from "../../domain/interfaces/usecases/IMaterialUseCases";
-import { IDeleteMaterialUseCase } from "../../domain/interfaces/usecases/IMaterialUseCases";
-import { Material } from "../../domain/entities/Material";
-import { CategoriaType } from "../../domain/entities/Material";
+import {
+  IGetMaterialesUseCase,
+  ICreateMaterialUseCase,
+  IUpdateMaterialUseCase,
+  IDeleteMaterialUseCase,
+} from "../../domain/interfaces/usecases/IMaterialUseCases";
+import { Material, CategoriaType } from "../../domain/entities/Material";
 
 /**
  * ViewModel que gestiona el inventario de materiales del usuario.
  * Proporciona operaciones CRUD y agrupación por categoría.
  */
 export class MaterialViewModel {
+  /** Lista de materiales del inventario del usuario actual */
   materiales: Material[] = [];
+  /** Indica si hay una operación en curso (carga o CRUD) */
   isLoading: boolean = false;
+  /** Mensaje de error a mostrar en la UI, o null si no hay */
   error: string | null = null;
 
+  /** UID del último usuario cargado, usado para recargar tras un CRUD */
   private _idUsuarioActual: string = "";
+  /** Caso de uso para obtener los materiales del usuario */
   private _getMaterialesUseCase: IGetMaterialesUseCase;
+  /** Caso de uso para crear un material */
   private _createMaterialUseCase: ICreateMaterialUseCase;
+  /** Caso de uso para actualizar un material */
   private _updateMaterialUseCase: IUpdateMaterialUseCase;
+  /** Caso de uso para eliminar un material */
   private _deleteMaterialUseCase: IDeleteMaterialUseCase;
 
+  /** Activa MobX y resuelve los casos de uso desde el contenedor de DI. */
   constructor() {
     makeAutoObservable(this);
     this._getMaterialesUseCase = container.get<IGetMaterialesUseCase>(TYPES.IGetMaterialesUseCase);
