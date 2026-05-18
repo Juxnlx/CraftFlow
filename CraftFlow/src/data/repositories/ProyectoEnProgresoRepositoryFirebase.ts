@@ -8,6 +8,7 @@ import {
   deleteDoc,
   query,
   where,
+  DocumentData,
 } from "firebase/firestore";
 import { db } from "../../config/firebaseConfig";
 import { IProyectoEnProgresoRepository } from "../../domain/interfaces/repositories/IProyectoEnProgresoRepository";
@@ -31,7 +32,7 @@ export class ProyectoEnProgresoRepositoryFirebase
    * Convierte un documento de Firestore en una instancia de la entidad.
    * Centralizado para no duplicar la lógica de mapeo en cada lectura.
    */
-  private _toEntity(id: string, data: any): ProyectoEnProgreso {
+  private _toEntity(id: string, data: DocumentData): ProyectoEnProgreso {
     return new ProyectoEnProgreso(
       id,
       data.idUsuario,

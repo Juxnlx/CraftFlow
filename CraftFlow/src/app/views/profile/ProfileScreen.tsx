@@ -7,6 +7,7 @@ import {
   Image,
   StyleSheet,
   Alert,
+  DimensionValue,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { observer } from "mobx-react-lite";
@@ -35,6 +36,15 @@ type ProfileScreenProps = {
 
 /** Identificador de la pestaña activa dentro del perfil */
 type TabKey = "mios" | "enProceso" | "terminados";
+
+/**
+ * Ítem que puede pintar la FlatList según la pestaña activa:
+ * un Proyecto suelto en "mis proyectos" o un par seguimiento+proyecto
+ * en "en proceso" y "terminados".
+ */
+type ItemProyecto =
+  | Proyecto
+  | { seguimiento: ProyectoEnProgreso; proyecto: Proyecto };
 
 /**
  * Pantalla de perfil del usuario con tres pestañas: proyectos creados,
@@ -160,32 +170,35 @@ export const ProfileScreen = observer(({ navigation }: ProfileScreenProps) => {
     ]);
   };
 
-  // Datos de la lista según tab activa. Tipos abiertos para que FlatList
-  // acepte cualquiera de los tres formatos.
-  const data: any[] =
+  // Datos de la lista según la tab activa. La unión ItemProyecto cubre
+  // los dos formatos: Proyecto suelto o par seguimiento+proyecto.
+  const data: ItemProyecto[] =
     tab === "mios"
       ? proyectoVM.misProyectos
       : tab === "enProceso"
       ? enProceso
       : terminados;
 
-  const keyExtractor = (item: any) =>
-    tab === "mios" ? item.id : item.seguimiento.id;
+  const keyExtractor = (item: ItemProyecto) =>
+    tab === "mios"
+      ? (item as Proyecto).id
+      : (item as { seguimiento: ProyectoEnProgreso }).seguimiento.id;
 
-  const renderItem = ({ item, index }: { item: any; index: number }) => {
+  const renderItem = ({ item, index }: { item: ItemProyecto; index: number }) => {
     if (tab === "mios") {
       return renderMioItem(item as Proyecto, index);
     }
+    const par = item as { seguimiento: ProyectoEnProgreso; proyecto: Proyecto };
     if (tab === "enProceso") {
       return renderEnProcesoItem(
-        item.seguimiento as ProyectoEnProgreso,
-        item.proyecto as Proyecto,
+        par.seguimiento,
+        par.proyecto,
         index
       );
     }
     return renderTerminadoItem(
-      item.seguimiento as ProyectoEnProgreso,
-      item.proyecto as Proyecto,
+      par.seguimiento,
+      par.proyecto,
       index
     );
   };
@@ -791,7 +804,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.lg,
   },
   emptyButton: {
-    width: "85%" as any,
+    width: "85%" as DimensionValue,
   },
   footer: {
     marginTop: SPACING.xl,
