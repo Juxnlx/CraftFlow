@@ -114,6 +114,12 @@ export const CreateProjectScreen = observer(
     // cambios sin guardar al volver atrás o cancelar (solo en edición).
     const originalSnapshot = useRef<string>("");
 
+    // Marca de salida intencional tras guardar: cuando está activa, el
+    // listener beforeRemove deja pasar el goBack sin volver a preguntar
+    // (si no, se mostraría el popup "salir sin guardar" después de crear
+    // el proyecto y, al pulsar continuar, se duplicaría la creación).
+    const salidaIntencional = useRef(false);
+
     /** Serializa el estado actual del formulario para poder compararlo. */
     const getCurrentSnapshot = () =>
       JSON.stringify({
@@ -261,6 +267,17 @@ export const CreateProjectScreen = observer(
 
     /** Abre la galería del dispositivo para escoger la imagen principal del proyecto. */
     const handlePickImage = async () => {
+      // En Android 13+ los permisos de galería son granulares y hay que
+      // pedirlos explícitamente, si no el picker falla en silencio.
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert(
+          "Permiso necesario",
+          "Para añadir una foto necesitamos acceso a la galería. Actívalo desde los ajustes del móvil."
+        );
+        return;
+      }
+
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ["images"],
         allowsEditing: true,
@@ -346,7 +363,10 @@ export const CreateProjectScreen = observer(
         if (success) {
           await proyectoVM.cargarMisProyectos(userId);
           saveOriginalSnapshot();
-          if (shouldNavigate) navigation.goBack();
+          if (shouldNavigate) {
+            salidaIntencional.current = true;
+            navigation.goBack();
+          }
         }
         return success;
       }
@@ -368,7 +388,10 @@ export const CreateProjectScreen = observer(
       const success = await proyectoVM.crearProyecto(proyecto);
       if (success) {
         await proyectoVM.cargarMisProyectos(userId);
-        if (shouldNavigate) navigation.goBack();
+        if (shouldNavigate) {
+          salidaIntencional.current = true;
+          navigation.goBack();
+        }
       }
       return success;
     };
@@ -393,6 +416,11 @@ export const CreateProjectScreen = observer(
      */
     useEffect(() => {
       const unsubscribe = navigation.addListener("beforeRemove", (e) => {
+        // Si acabamos de guardar y lanzamos el goBack, no preguntar
+        if (salidaIntencional.current) {
+          salidaIntencional.current = false;
+          return;
+        }
         if (!handlersRef.current.hasUnsavedChanges()) return;
         e.preventDefault();
         const titulo = isEditing ? "Cambios sin guardar" : "¿Salir sin guardar?";

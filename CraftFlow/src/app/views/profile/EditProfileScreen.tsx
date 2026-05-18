@@ -124,6 +124,17 @@ export const EditProfileScreen = observer(
 
     /** Abre la galería del dispositivo para escoger una nueva foto de perfil. */
     const handlePickAvatar = async () => {
+      // En Android 13+ los permisos de galería son granulares y hay que
+      // pedirlos explícitamente, si no el picker falla en silencio.
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert(
+          "Permiso necesario",
+          "Para cambiar tu foto necesitamos acceso a la galería. Actívalo desde los ajustes del móvil."
+        );
+        return;
+      }
+
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ["images"],
         allowsEditing: true,

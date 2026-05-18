@@ -99,6 +99,17 @@ export const RealizandoProyectoScreen = observer(
 
     /** Abre la galería, sube la imagen a Cloudinary y la asocia al paso. */
     const handleSubirFoto = async (numeroOrden: number) => {
+      // En Android 13+ los permisos de galería son granulares y hay que
+      // pedirlos explícitamente, si no el picker falla en silencio.
+      const permiso = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (permiso.status !== "granted") {
+        Alert.alert(
+          "Permiso necesario",
+          "Para añadir una foto del paso necesitamos acceso a la galería. Actívalo desde los ajustes del móvil."
+        );
+        return;
+      }
+
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ["images"],
         allowsEditing: true,

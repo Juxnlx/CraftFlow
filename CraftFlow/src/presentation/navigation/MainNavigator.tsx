@@ -1,6 +1,7 @@
 import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { COLORS } from "../../config/theme";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -128,6 +129,9 @@ const Tab = createBottomTabNavigator();
  * sin perder el tab bar.
  */
 export const MainNavigator: React.FC = () => {
+  // Margen extra inferior para que el tab bar no se solape con la barra
+  // del sistema (botones back/home/recientes en móviles Android).
+  const insets = useSafeAreaInsets();
   return (
     <Tab.Navigator
       screenOptions={{
@@ -138,8 +142,8 @@ export const MainNavigator: React.FC = () => {
         tabBarStyle: {
           backgroundColor: COLORS.white,
           borderTopColor: COLORS.borderLight,
-          height: 70,
-          paddingBottom: 12,
+          height: 70 + insets.bottom,
+          paddingBottom: 12 + insets.bottom,
           paddingTop: 8,
         },
       }}

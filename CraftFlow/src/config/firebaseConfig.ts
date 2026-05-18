@@ -1,7 +1,10 @@
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { initializeAuth } from "firebase/auth";
+// @ts-ignore: getReactNativePersistence existe en runtime pero falta en los types públicos de firebase v12
+import { getReactNativePersistence } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 /**
  * Configuración de Firebase para CraftFlow.
@@ -18,8 +21,14 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
-/** Servicio de autenticación de Firebase (login, registro, logout) */
-export const auth = getAuth(app);
+/**
+ * Servicio de autenticación de Firebase. Usamos AsyncStorage como
+ * persistencia para que la sesión sobreviva al cierre completo de la
+ * app y solo se cierre cuando el usuario pulse "Cerrar sesión".
+ */
+export const auth = initializeAuth(app, {
+  persistence: getReactNativePersistence(AsyncStorage),
+});
 
 /** Base de datos Firestore (colecciones de usuarios, materiales, proyectos...) */
 export const db = getFirestore(app);
