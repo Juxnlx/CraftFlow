@@ -28,6 +28,7 @@ import {
   PasoProyecto,
   Dificultad,
 } from "../../../domain/entities/Proyecto";
+import { ProyectoValidator } from "../../../domain/services/ProyectoValidator";
 import { COLORS, SPACING, RADIUS } from "../../../config/theme";
 import * as ImagePicker from "expo-image-picker";
 
@@ -308,16 +309,17 @@ export const CreateProjectScreen = observer(
     const handlePublicar = async (
       shouldNavigate: boolean = true
     ): Promise<boolean> => {
-      if (!nombre.trim()) {
-        setLocalError("El nombre es obligatorio");
-        return false;
-      }
-      if (!descripcion.trim()) {
-        setLocalError("La descripción es obligatoria");
-        return false;
-      }
-      if (!categoria) {
-        setLocalError("Selecciona una categoría");
+      // Las reglas de validación viven en el dominio (ProyectoValidator);
+      // la vista solo las invoca y muestra el resultado.
+      const errorValidacion = ProyectoValidator.validar({
+        nombre,
+        descripcion,
+        categoria,
+        materiales,
+        pasos,
+      });
+      if (errorValidacion) {
+        setLocalError(errorValidacion);
         return false;
       }
 
@@ -348,15 +350,6 @@ export const CreateProjectScreen = observer(
       const herramientasLimpias = herramientas.filter((h) => h.nombre.trim());
       const pasosLimpios = pasos.filter((p) => p.descripcion.trim());
       const etiquetasFinales = categoria ? [categoria] : [];
-
-      if (materialesLimpios.length === 0) {
-        setLocalError("Añade al menos un material");
-        return false;
-      }
-      if (pasosLimpios.length === 0) {
-        setLocalError("Añade al menos un paso");
-        return false;
-      }
 
       if (isEditing && idEditar) {
         const success = await proyectoVM.actualizarProyecto(idEditar, {

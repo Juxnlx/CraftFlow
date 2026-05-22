@@ -19,6 +19,7 @@ import { Button } from "../../../presentation/components/common/Button";
 import { Input } from "../../../presentation/components/common/Input";
 import { Material, CategoriaType } from "../../../domain/entities/Material";
 import { Herramienta } from "../../../domain/entities/Herramienta";
+import { MaterialValidator } from "../../../domain/services/MaterialValidator";
 import { COLORS, SPACING, RADIUS } from "../../../config/theme";
 
 /** Props inyectadas por React Navigation a la pantalla de añadir/editar */
@@ -389,19 +390,19 @@ export const AddEditMaterialScreen = observer(
     const handleGuardar = async (
       shouldNavigate: boolean = true
     ): Promise<boolean> => {
-      if (!nombre.trim()) {
-        setLocalError("El nombre es obligatorio");
+      // Las reglas de validación viven en el dominio (MaterialValidator);
+      // la vista solo las invoca y muestra el resultado.
+      const errorValidacion = isHerramienta
+        ? MaterialValidator.validarHerramienta(nombre, tipoHerramienta)
+        : MaterialValidator.validarMaterial(nombre);
+      if (errorValidacion) {
+        setLocalError(errorValidacion);
         return false;
       }
 
       setLocalError(null);
 
       if (isHerramienta) {
-        if (!tipoHerramienta.trim()) {
-          setLocalError("El tipo de herramienta es obligatorio");
-          return false;
-        }
-
         const propsFinales: Record<string, string | number> = {};
         for (const [key, val] of Object.entries(propiedades)) {
           if (val.trim()) {
