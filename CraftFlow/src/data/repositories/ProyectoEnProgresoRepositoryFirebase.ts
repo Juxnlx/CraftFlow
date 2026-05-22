@@ -66,7 +66,9 @@ export class ProyectoEnProgresoRepositoryFirebase
     const enProgreso = snapshot.docs.find(
       (d) => d.data().estado === "en_progreso"
     );
-    if (!enProgreso) return null;
+    if (!enProgreso) {
+      return null;
+    }
 
     return this._toEntity(enProgreso.id, enProgreso.data());
   }
@@ -135,17 +137,24 @@ export class ProyectoEnProgresoRepositoryFirebase
     const docRef = doc(db, "proyectosEnProgreso", idSeguimiento);
     const datosActualizados: Record<string, unknown> = {};
 
-    if (datos.fechaCompletado !== undefined)
+    if (datos.fechaCompletado !== undefined) {
       datosActualizados.fechaCompletado = datos.fechaCompletado;
-    if (datos.estado !== undefined) datosActualizados.estado = datos.estado;
-    if (datos.pasosCompletados !== undefined)
+    }
+    if (datos.estado !== undefined) {
+      datosActualizados.estado = datos.estado;
+    }
+    if (datos.pasosCompletados !== undefined) {
       datosActualizados.pasosCompletados = datos.pasosCompletados;
-    if (datos.tiempoInvertidoSegundos !== undefined)
+    }
+    if (datos.tiempoInvertidoSegundos !== undefined) {
       datosActualizados.tiempoInvertidoSegundos = datos.tiempoInvertidoSegundos;
-    if (datos.imagenResultado !== undefined)
+    }
+    if (datos.imagenResultado !== undefined) {
       datosActualizados.imagenResultado = datos.imagenResultado;
-    if (datos.notaFinal !== undefined)
+    }
+    if (datos.notaFinal !== undefined) {
       datosActualizados.notaFinal = datos.notaFinal;
+    }
 
     await updateDoc(docRef, datosActualizados);
   }

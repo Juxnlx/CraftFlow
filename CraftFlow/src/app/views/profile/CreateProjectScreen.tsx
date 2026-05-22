@@ -77,7 +77,9 @@ const CATEGORIAS_MATERIAL: {
 
 /** Devuelve la etiqueta de cantidad apropiada para la categoría del material. */
 const cantidadLabel = (categoria: string | null): string => {
-  if (!categoria) return "Cantidad necesaria";
+  if (!categoria) {
+    return "Cantidad necesaria";
+  }
   const cat = CATEGORIAS_MATERIAL.find((c) => c.value === categoria);
   return cat?.etiqueta ?? "Cantidad necesaria";
 };
@@ -136,7 +138,9 @@ export const CreateProjectScreen = observer(
 
     /** Indica si el usuario ha modificado algo desde la última carga. */
     const hasUnsavedChanges = (): boolean => {
-      if (!originalSnapshot.current) return false;
+      if (!originalSnapshot.current) {
+        return false;
+      }
       return getCurrentSnapshot() !== originalSnapshot.current;
     };
 
@@ -147,7 +151,9 @@ export const CreateProjectScreen = observer(
 
     /** Restaura todos los campos al estado guardado en el snapshot original. */
     const restoreOriginalData = () => {
-      if (!originalSnapshot.current) return;
+      if (!originalSnapshot.current) {
+        return;
+      }
       const o = JSON.parse(originalSnapshot.current);
       setNombre(o.nombre);
       setDescripcion(o.descripcion);
@@ -162,9 +168,13 @@ export const CreateProjectScreen = observer(
 
     // Pre-rellenar formulario en modo edición desde el proyecto cargado.
     useEffect(() => {
-      if (!isEditing || loaded) return;
+      if (!isEditing || loaded) {
+        return;
+      }
       const proyecto = proyectoVM.misProyectos.find((p) => p.id === idEditar);
-      if (!proyecto) return;
+      if (!proyecto) {
+        return;
+      }
       setNombre(proyecto.nombre);
       setDescripcion(proyecto.descripcion);
       setDificultad(proyecto.dificultad);
@@ -421,7 +431,9 @@ export const CreateProjectScreen = observer(
           salidaIntencional.current = false;
           return;
         }
-        if (!handlersRef.current.hasUnsavedChanges()) return;
+        if (!handlersRef.current.hasUnsavedChanges()) {
+          return;
+        }
         e.preventDefault();
         const titulo = isEditing ? "Cambios sin guardar" : "¿Salir sin guardar?";
         const mensaje = isEditing
@@ -432,7 +444,9 @@ export const CreateProjectScreen = observer(
             text: isEditing ? "No" : "Salir",
             style: "destructive",
             onPress: () => {
-              if (isEditing) handlersRef.current.restoreOriginalData();
+              if (isEditing) {
+                handlersRef.current.restoreOriginalData();
+              }
               navigation.dispatch(e.data.action);
             },
           },
@@ -440,9 +454,13 @@ export const CreateProjectScreen = observer(
             text: isEditing ? "Sí" : "Continuar editando",
             style: isEditing ? "default" : "cancel",
             onPress: async () => {
-              if (!isEditing) return;
+              if (!isEditing) {
+                return;
+              }
               const ok = await handlersRef.current.handlePublicar(false);
-              if (ok) navigation.dispatch(e.data.action);
+              if (ok) {
+                navigation.dispatch(e.data.action);
+              }
             },
           },
         ]);

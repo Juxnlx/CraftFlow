@@ -43,12 +43,16 @@ export class ProyectoEnProgresoViewModel {
    * como respaldo para datos antiguos.
    */
   get tiempoTotalSegundos(): number {
-    if (!this.proyectoActivo) return 0;
+    if (!this.proyectoActivo) {
+      return 0;
+    }
     const sumaPasos = this.proyectoActivo.pasosCompletados.reduce(
       (acc, p) => acc + (p.tiempoSegundos ?? 0),
       0
     );
-    if (sumaPasos > 0) return sumaPasos;
+    if (sumaPasos > 0) {
+      return sumaPasos;
+    }
     return this.proyectoActivo.tiempoInvertidoSegundos ?? 0;
   }
 
@@ -208,7 +212,9 @@ export class ProyectoEnProgresoViewModel {
     numeroOrden: number,
     tiempoSegundos: number
   ): Promise<void> {
-    if (!this.proyectoActivo) return;
+    if (!this.proyectoActivo) {
+      return;
+    }
 
     const nuevosPasos: PasoCompletado[] = this.proyectoActivo.pasosCompletados.map(
       (p) =>
@@ -246,7 +252,9 @@ export class ProyectoEnProgresoViewModel {
     completado: boolean,
     fotoProgreso?: string | null
   ): Promise<void> {
-    if (!this.proyectoActivo) return;
+    if (!this.proyectoActivo) {
+      return;
+    }
 
     const nuevosPasos: PasoCompletado[] = this.proyectoActivo.pasosCompletados.map(
       (p) =>
@@ -326,7 +334,9 @@ export class ProyectoEnProgresoViewModel {
     imagenResultado: string | null,
     notaFinal: string | null
   ): Promise<boolean> {
-    if (!this.proyectoActivo) return false;
+    if (!this.proyectoActivo) {
+      return false;
+    }
 
     runInAction(() => {
       this.isSaving = true;

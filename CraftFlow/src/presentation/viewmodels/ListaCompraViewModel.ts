@@ -73,11 +73,16 @@ export class ListaCompraViewModel {
    * en Firestore en segundo plano. Si la persistencia falla, revierte.
    */
   async toggleItemComprado(clave: string): Promise<void> {
-    if (!this._idUsuarioActual) return;
+    if (!this._idUsuarioActual) {
+      return;
+    }
     const yaComprado = this.itemsComprados.has(clave);
     const nuevoSet = new Set(this.itemsComprados);
-    if (yaComprado) nuevoSet.delete(clave);
-    else nuevoSet.add(clave);
+    if (yaComprado) {
+      nuevoSet.delete(clave);
+    } else {
+      nuevoSet.add(clave);
+    }
     runInAction(() => {
       this.itemsComprados = nuevoSet;
     });
@@ -90,8 +95,11 @@ export class ListaCompraViewModel {
     } catch {
       runInAction(() => {
         const revert = new Set(this.itemsComprados);
-        if (yaComprado) revert.add(clave);
-        else revert.delete(clave);
+        if (yaComprado) {
+          revert.add(clave);
+        } else {
+          revert.delete(clave);
+        }
         this.itemsComprados = revert;
       });
     }

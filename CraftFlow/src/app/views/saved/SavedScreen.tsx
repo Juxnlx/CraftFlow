@@ -43,7 +43,9 @@ export const SavedScreen = observer(({ navigation }: SavedScreenProps) => {
   useFocusEffect(
     useCallback(() => {
       const cargar = async () => {
-        if (!userId) return;
+        if (!userId) {
+          return;
+        }
         setCargando(true);
         // También refrescamos inventario y recomendaciones para que el
         // matchPercent de las cards esté al día si el usuario llega aquí

@@ -73,13 +73,27 @@ export class MaterialRepositoryFirebase implements IMaterialRepository {
     const docRef = doc(db, "materiales", idMaterial);
     const datosActualizados: Record<string, unknown> = {};
 
-    if (material.nombre !== undefined) datosActualizados.nombre = material.nombre;
-    if (material.color !== undefined) datosActualizados.color = material.color;
-    if (material.precio !== undefined) datosActualizados.precio = material.precio;
-    if (material.imagen !== undefined) datosActualizados.imagen = material.imagen;
-    if (material.propiedades !== undefined) datosActualizados.propiedades = material.propiedades;
-    if (material.urlCompra !== undefined) datosActualizados.urlCompra = material.urlCompra;
-    if (material.cantidad !== undefined) datosActualizados.cantidad = material.cantidad;
+    if (material.nombre !== undefined) {
+      datosActualizados.nombre = material.nombre;
+    }
+    if (material.color !== undefined) {
+      datosActualizados.color = material.color;
+    }
+    if (material.precio !== undefined) {
+      datosActualizados.precio = material.precio;
+    }
+    if (material.imagen !== undefined) {
+      datosActualizados.imagen = material.imagen;
+    }
+    if (material.propiedades !== undefined) {
+      datosActualizados.propiedades = material.propiedades;
+    }
+    if (material.urlCompra !== undefined) {
+      datosActualizados.urlCompra = material.urlCompra;
+    }
+    if (material.cantidad !== undefined) {
+      datosActualizados.cantidad = material.cantidad;
+    }
 
     await updateDoc(docRef, datosActualizados);
   }

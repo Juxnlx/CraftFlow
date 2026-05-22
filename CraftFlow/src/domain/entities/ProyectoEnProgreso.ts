@@ -116,7 +116,9 @@ export class ProyectoEnProgreso {
    * Se calcula aquí para que la UI no tenga que recalcularlo en cada render.
    */
   get porcentajeCompletado(): number {
-    if (this._pasosCompletados.length === 0) return 0;
+    if (this._pasosCompletados.length === 0) {
+      return 0;
+    }
     const completados = this._pasosCompletados.filter((p) => p.completado).length;
     return Math.round((completados / this._pasosCompletados.length) * 100);
   }

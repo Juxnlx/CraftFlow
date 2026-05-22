@@ -40,8 +40,12 @@ type HomeScreenProps = {
 /** Devuelve el saludo y emoji apropiados según la hora del día. */
 const construirSaludo = (): { texto: string; emoji: string } => {
   const hora = new Date().getHours();
-  if (hora < 12) return { texto: "Buenos días", emoji: "☀️" };
-  if (hora < 20) return { texto: "Buenas tardes", emoji: "🌤" };
+  if (hora < 12) {
+    return { texto: "Buenos días", emoji: "☀️" };
+  }
+  if (hora < 20) {
+    return { texto: "Buenas tardes", emoji: "🌤" };
+  }
   return { texto: "Buenas noches", emoji: "🌙" };
 };
 
@@ -239,7 +243,9 @@ export const HomeScreen = observer(({ navigation }: HomeScreenProps) => {
               <View style={styles.heroChips}>
                 {Object.entries(materialVM.materialesPorCategoria).map(
                   ([cat, items]) => {
-                    if (items.length === 0) return null;
+                    if (items.length === 0) {
+                      return null;
+                    }
                     return (
                       <View key={cat} style={styles.heroChip}>
                         <Text style={styles.heroChipText}>

@@ -24,14 +24,28 @@ export const MaterialCard: React.FC<MaterialCardProps> = ({
 }) => {
   // Construir la línea de detalles solo con los campos que vienen rellenos
   const detalles: string[] = [];
-  if (material.color) detalles.push(material.color);
+  if (material.color) {
+    detalles.push(material.color);
+  }
   const props = material.propiedades;
-  if (props.metros) detalles.push(`${props.metros}m`);
-  if (props.grosor) detalles.push(`${props.grosor}mm`);
-  if (props.mililitros) detalles.push(`${props.mililitros}ml`);
-  if (props.kilogramos) detalles.push(`${props.kilogramos}kg`);
-  if (props.unidades) detalles.push(`${props.unidades} uds`);
-  if (props.tipoMaterial) detalles.push(String(props.tipoMaterial));
+  if (props.metros) {
+    detalles.push(`${props.metros}m`);
+  }
+  if (props.grosor) {
+    detalles.push(`${props.grosor}mm`);
+  }
+  if (props.mililitros) {
+    detalles.push(`${props.mililitros}ml`);
+  }
+  if (props.kilogramos) {
+    detalles.push(`${props.kilogramos}kg`);
+  }
+  if (props.unidades) {
+    detalles.push(`${props.unidades} uds`);
+  }
+  if (props.tipoMaterial) {
+    detalles.push(String(props.tipoMaterial));
+  }
 
   /** Emoji que representa visualmente cada categoría */
   const categoriaEmoji: Record<string, string> = {

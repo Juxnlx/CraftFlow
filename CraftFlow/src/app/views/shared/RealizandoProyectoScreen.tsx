@@ -46,7 +46,9 @@ const FACTOR_SEGUNDOS: Record<UnidadTiempo, number> = {
 const descomponerTiempo = (
   segundos: number
 ): { valor: string; unidad: UnidadTiempo } => {
-  if (segundos <= 0) return { valor: "", unidad: "min" };
+  if (segundos <= 0) {
+    return { valor: "", unidad: "min" };
+  }
   if (segundos % FACTOR_SEGUNDOS.d === 0) {
     return { valor: String(segundos / FACTOR_SEGUNDOS.d), unidad: "d" };
   }
@@ -115,7 +117,9 @@ export const RealizandoProyectoScreen = observer(
         allowsEditing: true,
         quality: 0.8,
       });
-      if (result.canceled || !result.assets[0]) return;
+      if (result.canceled || !result.assets[0]) {
+        return;
+      }
 
       try {
         setPasoSubiendoFoto(numeroOrden);
@@ -154,7 +158,9 @@ export const RealizandoProyectoScreen = observer(
      */
     const handleGuardarTiempo = (numeroOrden: number) => {
       const editado = tiempoEditando[numeroOrden];
-      if (editado === undefined) return;
+      if (editado === undefined) {
+        return;
+      }
       const num = parseInt(editado.valor, 10);
       const segundos = isNaN(num)
         ? 0

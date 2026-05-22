@@ -31,11 +31,17 @@ type CompletarProyectoScreenProps = {
 
 /** Convierte segundos a una cadena humana del estilo "2h 15min", "45min" o "30s". */
 const formatearDuracion = (segundos: number): string => {
-  if (segundos < 60) return `${segundos}s`;
+  if (segundos < 60) {
+    return `${segundos}s`;
+  }
   const horas = Math.floor(segundos / 3600);
   const minutos = Math.floor((segundos % 3600) / 60);
-  if (horas === 0) return `${minutos}min`;
-  if (minutos === 0) return `${horas}h`;
+  if (horas === 0) {
+    return `${minutos}min`;
+  }
+  if (minutos === 0) {
+    return `${horas}h`;
+  }
   return `${horas}h ${minutos}min`;
 };
 

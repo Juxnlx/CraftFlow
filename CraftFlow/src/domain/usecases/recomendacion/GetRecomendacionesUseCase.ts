@@ -87,7 +87,9 @@ export class GetRecomendacionesUseCase implements IGetRecomendacionesUseCase {
     // 2. Para cada proyecto, comparar materiales y herramientas
     for (const proyecto of proyectosPublicos) {
       // Omitir proyectos propios del usuario
-      if (proyecto.idUsuario === idUsuario) continue;
+      if (proyecto.idUsuario === idUsuario) {
+        continue;
+      }
 
       // 2a. Matching de materiales
       const materialesRequeridos = proyecto.materiales || [];
@@ -113,7 +115,9 @@ export class GetRecomendacionesUseCase implements IGetRecomendacionesUseCase {
       // Un proyecto sin materiales NI herramientas no es recomendable
       // (no hay nada que comparar contra el inventario): se descarta.
       const totalItems = materialesMatch.length + herramientasMatch.length;
-      if (totalItems === 0) continue;
+      if (totalItems === 0) {
+        continue;
+      }
       const itemsTenidos =
         materialesMatch.filter((m) => m.loTieneElUsuario).length +
         herramientasMatch.filter((h) => h.loTieneElUsuario).length;

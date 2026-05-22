@@ -36,13 +36,17 @@ const EMOJIS_CATEGORIA: Record<string, string> = {
 
 // Convierte una categoría a un título legible con su primera letra en mayúscula
 const formatearCategoria = (cat: string): string => {
-  if (!cat) return "Otros";
+  if (!cat) {
+    return "Otros";
+  }
   return cat.charAt(0).toUpperCase() + cat.slice(1);
 };
 
 /** Devuelve 🔧 para herramientas o el emoji de la categoría para materiales. */
 const getEmoji = (item: ItemCompra): string => {
-  if (item.esHerramienta) return "🔧";
+  if (item.esHerramienta) {
+    return "🔧";
+  }
   return EMOJIS_CATEGORIA[item.categoriaOTipo.toLowerCase()] || "📦";
 };
 

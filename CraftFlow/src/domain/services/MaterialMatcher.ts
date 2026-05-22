@@ -61,8 +61,12 @@ export class MaterialMatcher {
   private static levenshtein(a: string, b: string): number {
     const m = a.length;
     const n = b.length;
-    if (m === 0) return n;
-    if (n === 0) return m;
+    if (m === 0) {
+      return n;
+    }
+    if (n === 0) {
+      return m;
+    }
     const dp: number[][] = Array.from({ length: m + 1 }, () =>
       Array(n + 1).fill(0)
     );
@@ -87,9 +91,13 @@ export class MaterialMatcher {
    * - Levenshtein ≤ 1 si alguna es corta (<5), ≤ 2 en otro caso.
    */
   private static palabrasCoinciden(a: string, b: string): boolean {
-    if (a === b) return true;
+    if (a === b) {
+      return true;
+    }
     if (a.length >= 4 && b.length >= 4) {
-      if (a.includes(b) || b.includes(a)) return true;
+      if (a.includes(b) || b.includes(a)) {
+        return true;
+      }
     }
     const distancia = this.levenshtein(a, b);
     const esCorta = a.length < 5 || b.length < 5;
@@ -114,7 +122,9 @@ export class MaterialMatcher {
       .filter((p) => p.length > 0)
       .map((p) => this.aplicarSinonimos(p));
 
-    if (palabrasRequerido.length === 0) return false;
+    if (palabrasRequerido.length === 0) {
+      return false;
+    }
 
     const coincidencias = palabrasRequerido.filter((palabra) =>
       palabrasUsuario.some((pu) => this.palabrasCoinciden(palabra, pu))
@@ -169,9 +179,13 @@ export class MaterialMatcher {
     materialRequerido: { categoria: string; cantidad: string | null },
     materialUsuario: Material
   ): boolean {
-    if (!materialRequerido.cantidad) return true;
+    if (!materialRequerido.cantidad) {
+      return true;
+    }
     const requeridoNum = this.extraerNumero(materialRequerido.cantidad);
-    if (requeridoNum === null) return true;
+    if (requeridoNum === null) {
+      return true;
+    }
 
     const categoria = this.normalizarTexto(materialUsuario.categoria);
     const propiedadKey = this.propiedadPrincipalPorCategoria(categoria);
@@ -216,7 +230,9 @@ export class MaterialMatcher {
     ];
     for (const u of unidades) {
       const re = new RegExp(`\\b${u}\\b`);
-      if (re.test(t)) return u;
+      if (re.test(t)) {
+        return u;
+      }
     }
     return "";
   }
@@ -233,18 +249,26 @@ export class MaterialMatcher {
     switch (categoria) {
       case "ceramica":
         // Base: kg
-        if (["gramos", "gramo", "gr", "g"].includes(unidad)) return 0.001;
+        if (["gramos", "gramo", "gr", "g"].includes(unidad)) {
+          return 0.001;
+        }
         return 1;
       case "lana":
       case "tela":
       case "hilo":
         // Base: metros
-        if (["centimetros", "centimetro", "cm"].includes(unidad)) return 0.01;
-        if (["milimetros", "milimetro", "mm"].includes(unidad)) return 0.001;
+        if (["centimetros", "centimetro", "cm"].includes(unidad)) {
+          return 0.01;
+        }
+        if (["milimetros", "milimetro", "mm"].includes(unidad)) {
+          return 0.001;
+        }
         return 1;
       case "pintura":
         // Base: ml
-        if (["litros", "litro", "l"].includes(unidad)) return 1000;
+        if (["litros", "litro", "l"].includes(unidad)) {
+          return 1000;
+        }
         return 1;
       default:
         return 1;
@@ -278,7 +302,9 @@ export class MaterialMatcher {
    */
   private static extraerNumero(texto: string): number | null {
     const match = texto.match(/[\d]+(?:[.,]\d+)?/);
-    if (!match) return null;
+    if (!match) {
+      return null;
+    }
     const num = parseFloat(match[0].replace(",", "."));
     return isNaN(num) ? null : num;
   }

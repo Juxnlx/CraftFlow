@@ -99,16 +99,36 @@ export class ProyectoRepositoryFirebase implements IProyectoRepository {
     const docRef = doc(db, "proyectos", idProyecto);
     const datosActualizados: Record<string, unknown> = {};
 
-    if (proyecto.nombre !== undefined) datosActualizados.nombre = proyecto.nombre;
-    if (proyecto.descripcion !== undefined) datosActualizados.descripcion = proyecto.descripcion;
-    if (proyecto.imagen !== undefined) datosActualizados.imagen = proyecto.imagen;
-    if (proyecto.visibilidad !== undefined) datosActualizados.visibilidad = proyecto.visibilidad;
-    if (proyecto.dificultad !== undefined) datosActualizados.dificultad = proyecto.dificultad;
-    if (proyecto.etiquetas !== undefined) datosActualizados.etiquetas = proyecto.etiquetas;
-    if (proyecto.materiales !== undefined) datosActualizados.materiales = proyecto.materiales;
-    if (proyecto.herramientas !== undefined) datosActualizados.herramientas = proyecto.herramientas;
-    if (proyecto.pasos !== undefined) datosActualizados.pasos = proyecto.pasos;
-    if (proyecto.activo !== undefined) datosActualizados.activo = proyecto.activo;
+    if (proyecto.nombre !== undefined) {
+      datosActualizados.nombre = proyecto.nombre;
+    }
+    if (proyecto.descripcion !== undefined) {
+      datosActualizados.descripcion = proyecto.descripcion;
+    }
+    if (proyecto.imagen !== undefined) {
+      datosActualizados.imagen = proyecto.imagen;
+    }
+    if (proyecto.visibilidad !== undefined) {
+      datosActualizados.visibilidad = proyecto.visibilidad;
+    }
+    if (proyecto.dificultad !== undefined) {
+      datosActualizados.dificultad = proyecto.dificultad;
+    }
+    if (proyecto.etiquetas !== undefined) {
+      datosActualizados.etiquetas = proyecto.etiquetas;
+    }
+    if (proyecto.materiales !== undefined) {
+      datosActualizados.materiales = proyecto.materiales;
+    }
+    if (proyecto.herramientas !== undefined) {
+      datosActualizados.herramientas = proyecto.herramientas;
+    }
+    if (proyecto.pasos !== undefined) {
+      datosActualizados.pasos = proyecto.pasos;
+    }
+    if (proyecto.activo !== undefined) {
+      datosActualizados.activo = proyecto.activo;
+    }
 
     await updateDoc(docRef, datosActualizados);
   }

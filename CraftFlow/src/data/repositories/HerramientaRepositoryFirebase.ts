@@ -68,11 +68,21 @@ export class HerramientaRepositoryFirebase implements IHerramientaRepository {
     const docRef = doc(db, "herramientas", idHerramienta);
     const datosActualizados: Record<string, unknown> = {};
 
-    if (herramienta.nombre !== undefined) datosActualizados.nombre = herramienta.nombre;
-    if (herramienta.tipo !== undefined) datosActualizados.tipo = herramienta.tipo;
-    if (herramienta.propiedades !== undefined) datosActualizados.propiedades = herramienta.propiedades;
-    if (herramienta.cantidad !== undefined) datosActualizados.cantidad = herramienta.cantidad;
-    if (herramienta.urlCompra !== undefined) datosActualizados.urlCompra = herramienta.urlCompra;
+    if (herramienta.nombre !== undefined) {
+      datosActualizados.nombre = herramienta.nombre;
+    }
+    if (herramienta.tipo !== undefined) {
+      datosActualizados.tipo = herramienta.tipo;
+    }
+    if (herramienta.propiedades !== undefined) {
+      datosActualizados.propiedades = herramienta.propiedades;
+    }
+    if (herramienta.cantidad !== undefined) {
+      datosActualizados.cantidad = herramienta.cantidad;
+    }
+    if (herramienta.urlCompra !== undefined) {
+      datosActualizados.urlCompra = herramienta.urlCompra;
+    }
 
     await updateDoc(docRef, datosActualizados);
   }

@@ -25,10 +25,18 @@ export const HerramientaCard: React.FC<HerramientaCardProps> = ({
   // Línea de detalles: tipo + las propiedades que vengan rellenas
   const detalles: string[] = [herramienta.tipo];
   const props = herramienta.propiedades;
-  if (props.grosor) detalles.push(`${props.grosor}mm`);
-  if (props.numero) detalles.push(`nº${props.numero}`);
-  if (props.diametro) detalles.push(`⌀${props.diametro}cm`);
-  if (herramienta.cantidad > 1) detalles.push(`x${herramienta.cantidad}`);
+  if (props.grosor) {
+    detalles.push(`${props.grosor}mm`);
+  }
+  if (props.numero) {
+    detalles.push(`nº${props.numero}`);
+  }
+  if (props.diametro) {
+    detalles.push(`⌀${props.diametro}cm`);
+  }
+  if (herramienta.cantidad > 1) {
+    detalles.push(`x${herramienta.cantidad}`);
+  }
 
   return (
     <View style={styles.card}>

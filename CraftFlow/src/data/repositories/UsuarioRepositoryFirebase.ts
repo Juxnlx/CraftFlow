@@ -53,10 +53,18 @@ export class UsuarioRepositoryFirebase implements IUsuarioRepository {
     const docRef = doc(db, "usuarios", idUsuario);
     const datosActualizados: Record<string, unknown> = {};
 
-    if (datos.nombre !== undefined) datosActualizados.nombre = datos.nombre;
-    if (datos.fotoPerfil !== undefined) datosActualizados.fotoPerfil = datos.fotoPerfil;
-    if (datos.intereses !== undefined) datosActualizados.intereses = datos.intereses;
-    if (datos.activo !== undefined) datosActualizados.activo = datos.activo;
+    if (datos.nombre !== undefined) {
+      datosActualizados.nombre = datos.nombre;
+    }
+    if (datos.fotoPerfil !== undefined) {
+      datosActualizados.fotoPerfil = datos.fotoPerfil;
+    }
+    if (datos.intereses !== undefined) {
+      datosActualizados.intereses = datos.intereses;
+    }
+    if (datos.activo !== undefined) {
+      datosActualizados.activo = datos.activo;
+    }
 
     await updateDoc(docRef, datosActualizados);
   }

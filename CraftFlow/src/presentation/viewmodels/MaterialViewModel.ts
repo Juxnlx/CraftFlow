@@ -130,7 +130,9 @@ export class MaterialViewModel {
   get materialesPorCategoria(): Record<CategoriaType, Material[]> {
     const agrupados: Record<string, Material[]> = {};
     for (const m of this.materiales) {
-      if (!agrupados[m.categoria]) agrupados[m.categoria] = [];
+      if (!agrupados[m.categoria]) {
+        agrupados[m.categoria] = [];
+      }
       agrupados[m.categoria].push(m);
     }
     return agrupados as Record<CategoriaType, Material[]>;

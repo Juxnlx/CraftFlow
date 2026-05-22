@@ -108,8 +108,12 @@ interface FormSnapshot {
  */
 const normalizarUrl = (url: string): string | null => {
   const limpia = url.trim();
-  if (!limpia) return null;
-  if (/^https?:\/\//i.test(limpia)) return limpia;
+  if (!limpia) {
+    return null;
+  }
+  if (/^https?:\/\//i.test(limpia)) {
+    return limpia;
+  }
   return `https://${limpia}`;
 };
 
@@ -179,7 +183,9 @@ export const AddEditMaterialScreen = observer(
 
     /** Comprueba si hay cambios sin guardar */
     const hasUnsavedChanges = (): boolean => {
-      if (!originalSnapshot.current) return false;
+      if (!originalSnapshot.current) {
+        return false;
+      }
       return (
         snapshotToString(getCurrentSnapshot()) !== originalSnapshot.current
       );
@@ -192,7 +198,9 @@ export const AddEditMaterialScreen = observer(
 
     // Pre-rellenar datos si estamos en modo edición
     useEffect(() => {
-      if (!isEditing || loaded) return;
+      if (!isEditing || loaded) {
+        return;
+      }
 
       const material = materialVM.materiales.find((m) => m.id === idEditar);
       if (material) {
@@ -252,7 +260,9 @@ export const AddEditMaterialScreen = observer(
 
     /** Restaura los datos al estado original */
     const restoreOriginalData = () => {
-      if (!originalSnapshot.current) return;
+      if (!originalSnapshot.current) {
+        return;
+      }
       const original: FormSnapshot = JSON.parse(originalSnapshot.current);
       setNombre(original.nombre);
       setColor(original.color);
@@ -359,7 +369,9 @@ export const AddEditMaterialScreen = observer(
               text: "Sí",
               onPress: async () => {
                 const ok = await handlersRef.current.handleGuardar(false);
-                if (ok) navigation.dispatch(e.data.action);
+                if (ok) {
+                  navigation.dispatch(e.data.action);
+                }
               },
             },
           ]);
@@ -408,7 +420,9 @@ export const AddEditMaterialScreen = observer(
           } as Partial<Herramienta>);
           if (success) {
             saveOriginalSnapshot();
-            if (shouldNavigate) navigation.goBack();
+            if (shouldNavigate) {
+              navigation.goBack();
+            }
           }
           return success;
         } else {
@@ -450,7 +464,9 @@ export const AddEditMaterialScreen = observer(
           } as Partial<Material>);
           if (success) {
             saveOriginalSnapshot();
-            if (shouldNavigate) navigation.goBack();
+            if (shouldNavigate) {
+              navigation.goBack();
+            }
           }
           return success;
         } else {

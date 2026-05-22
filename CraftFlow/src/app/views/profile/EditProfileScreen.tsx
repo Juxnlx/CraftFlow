@@ -63,7 +63,9 @@ export const EditProfileScreen = observer(
 
     /** Indica si el usuario ha modificado algo desde la última carga. */
     const hasUnsavedChanges = (): boolean => {
-      if (!originalSnapshot.current) return false;
+      if (!originalSnapshot.current) {
+        return false;
+      }
       return getCurrentSnapshot() !== originalSnapshot.current;
     };
 
@@ -93,8 +95,12 @@ export const EditProfileScreen = observer(
     // Aviso de cambios sin guardar al salir (header back, swipe iOS, back físico)
     useEffect(() => {
       const unsubscribe = navigation.addListener("beforeRemove", (e) => {
-        if (guardandoOk.current) return;
-        if (!hasUnsavedChanges()) return;
+        if (guardandoOk.current) {
+          return;
+        }
+        if (!hasUnsavedChanges()) {
+          return;
+        }
         e.preventDefault();
         Alert.alert(
           "¿Salir sin guardar?",

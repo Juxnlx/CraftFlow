@@ -91,7 +91,9 @@ export const ProfileScreen = observer(({ navigation }: ProfileScreenProps) => {
       ...proyectoEnProgresoVM.proyectosCompletados.map((s) => s.idProyecto),
     ];
     const idsUnicos = [...new Set(ids)].filter((id) => !proyectosCache[id]);
-    if (idsUnicos.length === 0) return;
+    if (idsUnicos.length === 0) {
+      return;
+    }
     proyectoVM.cargarProyectosPorIds(idsUnicos).then((proys) => {
       setProyectosCache((prev) => {
         const next = { ...prev };

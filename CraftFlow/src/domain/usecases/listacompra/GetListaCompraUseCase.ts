@@ -50,7 +50,9 @@ export class GetListaCompraUseCase implements IGetListaCompraUseCase {
       this._herramientaRepository.getHerramientasPorUsuario(idUsuario),
     ]);
 
-    if (favoritos.length === 0) return [];
+    if (favoritos.length === 0) {
+      return [];
+    }
 
     // Cargar los proyectos completos asociados a los favoritos
     // (ignoramos los que ya hayan sido eliminados por su autor)
@@ -173,7 +175,9 @@ export class GetListaCompraUseCase implements IGetListaCompraUseCase {
     const exacta = misHerramientas.find(
       (h) => this._normalizarTexto(h.tipo) === tipoNormalizado && h.urlCompra
     );
-    if (exacta) return exacta.urlCompra;
+    if (exacta) {
+      return exacta.urlCompra;
+    }
 
     const aproximada = misHerramientas.find(
       (h) =>

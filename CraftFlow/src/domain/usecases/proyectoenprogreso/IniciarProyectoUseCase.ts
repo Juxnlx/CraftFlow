@@ -39,7 +39,9 @@ export class IniciarProyectoUseCase implements IIniciarProyectoUseCase {
       idUsuario,
       idProyecto
     );
-    if (existente) return existente;
+    if (existente) {
+      return existente;
+    }
 
     // Inicializa el array de pasos a partir del número de pasos del proyecto
     const pasosCompletados: PasoCompletado[] = Array.from(
