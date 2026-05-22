@@ -10,7 +10,7 @@ import {
   IDeleteProyectoUseCase,
 } from "../../domain/interfaces/usecases/IProyectoUseCases";
 import { Proyecto } from "../../domain/entities/Proyecto";
-import { IUsuarioRepository } from "../../domain/interfaces/repositories/IUsuarioRepository";
+import { IGetUsuarioPorIdUseCase } from "../../domain/interfaces/usecases/IUsuarioUseCases";
 
 /**
  * ViewModel que gestiona proyectos: feed público, mis proyectos,
@@ -44,8 +44,8 @@ export class ProyectoViewModel {
   private _updateUseCase: IUpdateProyectoUseCase;
   /** Caso de uso para eliminar (borrado lógico) un proyecto */
   private _deleteUseCase: IDeleteProyectoUseCase;
-  /** Repositorio de usuarios, usado para resolver nombres de autores */
-  private _usuarioRepository: IUsuarioRepository;
+  /** Caso de uso para obtener los datos de un autor por su ID */
+  private _getUsuarioPorIdUseCase: IGetUsuarioPorIdUseCase;
 
   /** Activa MobX y resuelve dependencias desde el contenedor de DI. */
   constructor() {
@@ -56,7 +56,7 @@ export class ProyectoViewModel {
     this._createUseCase = container.get<ICreateProyectoUseCase>(TYPES.ICreateProyectoUseCase);
     this._updateUseCase = container.get<IUpdateProyectoUseCase>(TYPES.IUpdateProyectoUseCase);
     this._deleteUseCase = container.get<IDeleteProyectoUseCase>(TYPES.IDeleteProyectoUseCase);
-    this._usuarioRepository = container.get<IUsuarioRepository>(TYPES.IUsuarioRepository);
+    this._getUsuarioPorIdUseCase = container.get<IGetUsuarioPorIdUseCase>(TYPES.IGetUsuarioPorIdUseCase);
   }
 
   /** Carga todos los proyectos públicos para el feed de explorar. */
@@ -245,7 +245,7 @@ export class ProyectoViewModel {
       // Si ya tenemos el nombre cacheado, no volvemos a pedirlo
       if (!this.nombresAutores[id]) {
         try {
-          const usuario = await this._usuarioRepository.getUsuarioPorId(id);
+          const usuario = await this._getUsuarioPorIdUseCase.execute(id);
           runInAction(() => {
             this.nombresAutores[id] = usuario.nombre;
           });
