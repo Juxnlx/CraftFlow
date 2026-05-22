@@ -49,6 +49,8 @@ export const EditProfileScreen = observer(
     const [nombre, setNombre] = useState("");
     const [intereses, setIntereses] = useState<string[]>([]);
     const [avatarLocal, setAvatarLocal] = useState<string | null>(null);
+    // True si el usuario ha pulsado "Quitar foto"; el borrado se aplica al guardar
+    const [fotoEliminada, setFotoEliminada] = useState(false);
 
     // Snapshot del formulario al cargar para detectar cambios sin guardar
     // y avisar al usuario antes de perderlos.
@@ -57,7 +59,7 @@ export const EditProfileScreen = observer(
 
     /** Serializa el estado actual del formulario para comparar. */
     const getCurrentSnapshot = () =>
-      JSON.stringify({ nombre, intereses, avatarLocal });
+      JSON.stringify({ nombre, intereses, avatarLocal, fotoEliminada });
 
     /** Indica si el usuario ha modificado algo desde la última carga. */
     const hasUnsavedChanges = (): boolean => {
@@ -82,6 +84,7 @@ export const EditProfileScreen = observer(
             nombre: usuario.nombre,
             intereses: [...usuario.intereses],
             avatarLocal: null,
+            fotoEliminada: false,
           });
         }, 100);
       }
@@ -111,7 +114,7 @@ export const EditProfileScreen = observer(
       });
       return unsubscribe;
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [navigation, nombre, intereses, avatarLocal]);
+    }, [navigation, nombre, intereses, avatarLocal, fotoEliminada]);
 
     /** Añade o quita un interés de la selección actual. */
     const toggleInteres = (clave: string) => {
@@ -144,12 +147,20 @@ export const EditProfileScreen = observer(
 
       if (!result.canceled && result.assets[0]) {
         setAvatarLocal(result.assets[0].uri);
+        // Si había marcado quitar la foto y ahora elige una, se cancela
+        setFotoEliminada(false);
       }
     };
 
+    /** Marca la foto de perfil para borrarla; el cambio se aplica al guardar. */
+    const handleQuitarFoto = () => {
+      setAvatarLocal(null);
+      setFotoEliminada(true);
+    };
+
     /**
-     * Valida el formulario y guarda los cambios. Si hay avatar nuevo,
-     * lo sube primero a Cloudinary y luego actualiza nombre e intereses.
+     * Valida el formulario y guarda los cambios. Si hay avatar nuevo lo sube
+     * a Cloudinary; si el usuario quitó la foto, guarda fotoPerfil como null.
      */
     const handleGuardar = async () => {
       if (!nombre.trim()) {
@@ -169,11 +180,20 @@ export const EditProfileScreen = observer(
         }
       }
 
-      // Guardar nombre e intereses
-      const exito = await usuarioVM.actualizarPerfil(userId, {
+      // Guardar nombre e intereses. Si se ha quitado la foto (y no se ha
+      // elegido otra), mandamos fotoPerfil a null para borrarla en Firestore.
+      const datosPerfil: {
+        nombre: string;
+        intereses: string[];
+        fotoPerfil?: string | null;
+      } = {
         nombre: nombre.trim(),
         intereses,
-      });
+      };
+      if (fotoEliminada && !avatarLocal) {
+        datosPerfil.fotoPerfil = null;
+      }
+      const exito = await usuarioVM.actualizarPerfil(userId, datosPerfil);
 
       if (exito) {
         guardandoOk.current = true;
@@ -186,8 +206,10 @@ export const EditProfileScreen = observer(
       }
     };
 
-    // Imagen a mostrar en el avatar (preview de subida > foto guardada > fallback)
-    const avatarUrl = avatarLocal || usuario?.fotoPerfil || null;
+    // Imagen a mostrar en el avatar: preview de subida > foto guardada, salvo
+    // que el usuario la haya quitado > inicial como fallback.
+    const avatarUrl =
+      avatarLocal || (fotoEliminada ? null : usuario?.fotoPerfil) || null;
 
     return (
       <SafeAreaView style={styles.container}>
@@ -232,6 +254,15 @@ export const EditProfileScreen = observer(
               </View>
             </TouchableOpacity>
             <Text style={styles.avatarHint}>Toca para cambiar la foto</Text>
+            {avatarUrl && (
+              <TouchableOpacity
+                onPress={handleQuitarFoto}
+                activeOpacity={0.7}
+                style={styles.quitarFotoBtn}
+              >
+                <Text style={styles.quitarFotoText}>Quitar foto</Text>
+              </TouchableOpacity>
+            )}
           </View>
 
           {/* ─── Nombre ─── */}
@@ -385,6 +416,15 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: COLORS.textLight,
     marginTop: SPACING.xs,
+  },
+  quitarFotoBtn: {
+    marginTop: SPACING.xs,
+    paddingVertical: SPACING.xs,
+  },
+  quitarFotoText: {
+    fontSize: 13,
+    color: COLORS.danger,
+    fontWeight: "700",
   },
   // Section titles (consistente con otras pantallas)
   sectionTitle: {

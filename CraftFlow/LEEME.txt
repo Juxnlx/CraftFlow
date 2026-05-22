@@ -6,7 +6,7 @@ de manualidades y recibir recomendaciones de proyectos según lo que tienes en c
 
 Requisitos previos
 
-- Node.js 20 o superior (https://nodejs.org).
+- Node.js 20 o superior (https://nodejs.org). Desarrollado y probado con Node.js 24.12.0.
 - La app Expo Go instalada en el móvil (Android o iOS) para probar la app,
   o un emulador de Android Studio / simulador de iOS.
 - No hace falta instalar Expo de forma global: ya viene como dependencia
@@ -16,7 +16,7 @@ Requisitos previos
 
 Cómo arrancar el proyecto
 
-1. Descomprime el .zip (o clona el repositorio) y entra en la carpeta del proyecto
+1. Descomprime el .zip y entra en la carpeta del proyecto
    desde una terminal.
 2. Instala las dependencias:
        npm install
