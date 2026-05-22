@@ -20,6 +20,7 @@ import { ProjectCard } from "../../../presentation/components/cards/ProjectCard"
 import { LoadingSpinner } from "../../../presentation/components/common/LoadingSpinner";
 import { FadeInItem } from "../../../presentation/components/common/FadeInItem";
 import { COLORS, SPACING, RADIUS } from "../../../config/theme";
+import { mezclar } from "../../../utils/array";
 
 /** Props inyectadas por React Navigation a la pantalla de Explorar */
 type ExploreScreenProps = {
@@ -38,18 +39,6 @@ const FILTROS: { key: string; label: string; emoji: string; match: string }[] = 
   { key: "Costura", label: "Costura", emoji: "🧵", match: "costura" },
   { key: "Papel", label: "Papel", emoji: "📄", match: "papel" },
 ];
-
-// Mezcla un array sin mutar el original (Fisher-Yates). Lo usamos
-// para que Explorar no muestre siempre los proyectos en el mismo orden
-// y los antiguos tengan oportunidad de aparecer arriba.
-function mezclar<T>(arr: T[]): T[] {
-  const copia = [...arr];
-  for (let i = copia.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [copia[i], copia[j]] = [copia[j], copia[i]];
-  }
-  return copia;
-}
 
 /**
  * Pantalla de Explorar con búsqueda y filtros por categoría. Muestra los

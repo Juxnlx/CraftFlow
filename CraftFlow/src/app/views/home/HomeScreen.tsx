@@ -31,6 +31,7 @@ import { LoadingSpinner } from "../../../presentation/components/common/LoadingS
 import { EmptyState } from "../../../presentation/components/common/EmptyState";
 import { FadeInItem } from "../../../presentation/components/common/FadeInItem";
 import { COLORS, SPACING, RADIUS } from "../../../config/theme";
+import { mezclar } from "../../../utils/array";
 
 /** Props inyectadas por React Navigation a la pantalla principal */
 type HomeScreenProps = {
@@ -61,17 +62,6 @@ const formatearFechaActual = (): string => {
     return "";
   }
 };
-
-// Mezcla un array sin mutar el original (Fisher-Yates).
-// Se usa para que las recomendaciones empatadas no salgan siempre en el mismo orden.
-function mezclar<T>(arr: T[]): T[] {
-  const copia = [...arr];
-  for (let i = copia.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [copia[i], copia[j]] = [copia[j], copia[i]];
-  }
-  return copia;
-}
 
 // Etiquetas cortas usadas en los chips de inventario del hero verde
 const LABELS_CATEGORIA: Record<string, string> = {

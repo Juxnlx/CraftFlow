@@ -19,6 +19,8 @@ import { LoadingSpinner } from "../../../presentation/components/common/LoadingS
 import { Button } from "../../../presentation/components/common/Button";
 import { FadeInItem } from "../../../presentation/components/common/FadeInItem";
 import { COLORS, SPACING, RADIUS } from "../../../config/theme";
+import { Material } from "../../../domain/entities/Material";
+import { Herramienta } from "../../../domain/entities/Herramienta";
 
 /** Props inyectadas por React Navigation a la pantalla de inventario */
 type InventoryScreenProps = {
@@ -49,8 +51,8 @@ interface Seccion {
   emoji: string;
   /** Nombre legible de la sección */
   titulo: string;
-  /** Ítems que pertenecen a la sección */
-  data: any[];
+  /** Ítems que pertenecen a la sección (materiales o herramientas) */
+  data: (Material | Herramienta)[];
   /** Indica qué tarjeta usar al renderizar cada ítem */
   tipo: "material" | "herramienta";
 }
@@ -233,33 +235,40 @@ export const InventoryScreen = observer(
               </View>
             )}
             renderItem={({ item, section, index }) => {
+              // section.tipo determina el tipo concreto del ítem; la
+              // SectionList no estrecha la unión por sí sola, así que
+              // se afina aquí según la sección que se está renderizando.
               if (section.tipo === "herramienta") {
+                const herramienta = item as Herramienta;
                 return (
                   <FadeInItem index={index}>
                     <HerramientaCard
-                      herramienta={item}
+                      herramienta={herramienta}
                       onEdit={() =>
                         navigation.navigate("AddEditMaterial", {
-                          idEditar: item.id,
+                          idEditar: herramienta.id,
                         })
                       }
                       onDelete={() =>
-                        handleDeleteHerramienta(item.id, item.nombre)
+                        handleDeleteHerramienta(herramienta.id, herramienta.nombre)
                       }
                     />
                   </FadeInItem>
                 );
               }
+              const material = item as Material;
               return (
                 <FadeInItem index={index}>
                   <MaterialCard
-                    material={item}
+                    material={material}
                     onEdit={() =>
                       navigation.navigate("AddEditMaterial", {
-                        idEditar: item.id,
+                        idEditar: material.id,
                       })
                     }
-                    onDelete={() => handleDeleteMaterial(item.id, item.nombre)}
+                    onDelete={() =>
+                      handleDeleteMaterial(material.id, material.nombre)
+                    }
                   />
                 </FadeInItem>
               );
