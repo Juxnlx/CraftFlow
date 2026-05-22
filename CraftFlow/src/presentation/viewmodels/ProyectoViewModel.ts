@@ -242,18 +242,18 @@ export class ProyectoViewModel {
   private async _resolverNombresAutores(proyectos: Proyecto[]): Promise<void> {
     const idsUnicos = [...new Set(proyectos.map((p) => p.idUsuario))];
     for (const id of idsUnicos) {
-      if (this.nombresAutores[id]) {
-        continue;
-      }
-      try {
-        const usuario = await this._usuarioRepository.getUsuarioPorId(id);
-        runInAction(() => {
-          this.nombresAutores[id] = usuario.nombre;
-        });
-      } catch {
-        runInAction(() => {
-          this.nombresAutores[id] = "Desconocido";
-        });
+      // Si ya tenemos el nombre cacheado, no volvemos a pedirlo
+      if (!this.nombresAutores[id]) {
+        try {
+          const usuario = await this._usuarioRepository.getUsuarioPorId(id);
+          runInAction(() => {
+            this.nombresAutores[id] = usuario.nombre;
+          });
+        } catch {
+          runInAction(() => {
+            this.nombresAutores[id] = "Desconocido";
+          });
+        }
       }
     }
   }

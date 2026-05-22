@@ -84,13 +84,19 @@ export class GetRecomendacionesUseCase implements IGetRecomendacionesUseCase {
     // Caché de autores para no consultar el mismo usuario varias veces
     const cacheAutores = new Map<string, Usuario>();
 
-    // 2. Para cada proyecto, comparar materiales y herramientas
-    for (const proyecto of proyectosPublicos) {
-      // Omitir proyectos propios del usuario
-      if (proyecto.idUsuario === idUsuario) {
-        continue;
-      }
+    // Candidatos: descartamos los proyectos propios del usuario y los que
+    // no requieren ningún material ni herramienta (no hay nada que comparar
+    // contra el inventario). Filtrar aquí evita usar continue en el bucle.
+    const proyectosCandidatos = proyectosPublicos.filter((proyecto) => {
+      const esPropio = proyecto.idUsuario === idUsuario;
+      const totalItems =
+        (proyecto.materiales?.length ?? 0) +
+        (proyecto.herramientas?.length ?? 0);
+      return !esPropio && totalItems > 0;
+    });
 
+    // 2. Para cada proyecto candidato, comparar materiales y herramientas
+    for (const proyecto of proyectosCandidatos) {
       // 2a. Matching de materiales
       const materialesRequeridos = proyecto.materiales || [];
       const materialesMatch: MaterialMatch[] = materialesRequeridos.map((req) => ({
@@ -111,13 +117,9 @@ export class GetRecomendacionesUseCase implements IGetRecomendacionesUseCase {
         ),
       }));
 
-      // 3. Calcular matchPercent combinado.
-      // Un proyecto sin materiales NI herramientas no es recomendable
-      // (no hay nada que comparar contra el inventario): se descarta.
+      // 3. Calcular matchPercent combinado. El filtro previo garantiza
+      // que totalItems > 0, por lo que no hay división por cero.
       const totalItems = materialesMatch.length + herramientasMatch.length;
-      if (totalItems === 0) {
-        continue;
-      }
       const itemsTenidos =
         materialesMatch.filter((m) => m.loTieneElUsuario).length +
         herramientasMatch.filter((h) => h.loTieneElUsuario).length;
